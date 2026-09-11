@@ -1,0 +1,6 @@
+app/parts/*.txt text eol=lf
+*.html text eol=lf
+*.cpp text eol=crlf
+*.h text eol=crlf
+*.rc text eol=crlf
+*.bat text eol=crlf
