@@ -46,23 +46,54 @@ static void SetRegString(HKEY root, const std::wstring& keyPath, const wchar_t* 
     RegCloseKey(key);
 }
 
+static std::wstring ExtractProjectIconFile() {
+    // KB911_V29_PROJECT_ICON_FILE
+    HINSTANCE hInst = GetModuleHandleW(nullptr);
+    HRSRC hrsrc = FindResourceW(hInst, MAKEINTRESOURCEW(IDR_PROJECT_ICON_FILE), RT_RCDATA);
+    if (!hrsrc) return L"";
+    HGLOBAL hglob = LoadResource(hInst, hrsrc);
+    if (!hglob) return L"";
+    DWORD size = SizeofResource(hInst, hrsrc);
+    const void* data = LockResource(hglob);
+    if (!data || !size) return L"";
+
+    PWSTR local = nullptr;
+    if (FAILED(SHGetKnownFolderPath(FOLDERID_LocalAppData, 0, nullptr, &local)) || !local) return L"";
+    std::wstring root = std::wstring(local) + L"\\KB911";
+    CoTaskMemFree(local);
+    SHCreateDirectoryExW(nullptr, root.c_str(), nullptr);
+    std::wstring iconPath = root + L"\\KB911_project.ico";
+
+    HANDLE h = CreateFileW(iconPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h == INVALID_HANDLE_VALUE) return L"";
+    DWORD written = 0;
+    BOOL ok = WriteFile(h, data, size, &written, nullptr);
+    CloseHandle(h);
+    return (ok && written == size) ? iconPath : L"";
+}
+
 static void RegisterProjectAssociation() {
-    // KB911_V28_PROJECT_ICON_ASSOC_REFRESH
-    // Refresh all association locations Explorer may use. This also covers an
-    // older UserChoice resolving to Applications\\KB911.exe.
+    // KB911_V29_PROJECT_ICON_ASSOC_FILE
+    // Explorer gets the project icon from a real .ico file extracted to
+    // LocalAppData. This avoids ambiguity of icon-resource indexes inside EXE.
     wchar_t exeBuf[32768]{};
     DWORD n = GetModuleFileNameW(nullptr, exeBuf, static_cast<DWORD>(_countof(exeBuf)));
     if (!n || n >= _countof(exeBuf)) return;
     std::wstring exe(exeBuf, n);
     const std::wstring progId = L"KB911.Project";
-    const std::wstring iconSpec = L"\"" + exe + L"\",-103";
+    std::wstring projectIcon = ExtractProjectIconFile();
+    const std::wstring iconSpec = projectIcon.empty()
+        ? (L"\"" + exe + L"\",-103")
+        : (L"\"" + projectIcon + L"\",0");
     const std::wstring openCommand = L"\"" + exe + L"\" \"%1\"";
 
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\.kb911", nullptr, progId);
+    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\.kb911\\DefaultIcon", nullptr, iconSpec);
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\.kb911\\OpenWithProgids", L"KB911.Project", L"");
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project", nullptr, L"Проект KB911");
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\DefaultIcon", nullptr, iconSpec);
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\shell\\open\\command", nullptr, openCommand);
+    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\SystemFileAssociations\\.kb911\\DefaultIcon", nullptr, iconSpec);
 
     const wchar_t* exeNamePtr = PathFindFileNameW(exe.c_str());
     std::wstring exeName = (exeNamePtr && *exeNamePtr) ? exeNamePtr : L"KB911.exe";
@@ -103,8 +134,8 @@ needle='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AW
 replacement='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);\n    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);\n    RegisterProjectAssociation();\n    int argc = 0;\n    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);\n    if (argv) {\n        if (argc > 1 && argv[1] && EndsWithI(argv[1], L".kb911")) g_pendingProjectPath = argv[1];\n        LocalFree(argv);\n    }\n'''
 rep(needle,replacement)
 
-for token in ['KB911_V28_PROJECT_ICON_ASSOC_REFRESH','SHCNF_IDLIST | SHCNF_FLUSH','Software\\\\Classes\\\\Applications\\\\','OpenWithProgids']:
-    if token not in s: raise SystemExit('patch_native_open_v7 v28 guard failed: '+token)
+for token in ['KB911_V29_PROJECT_ICON_FILE','KB911_V29_PROJECT_ICON_ASSOC_FILE','IDR_PROJECT_ICON_FILE','KB911_project.ico','SystemFileAssociations\\\\.kb911\\\\DefaultIcon']:
+    if token not in s: raise SystemExit('patch_native_open_v7 v29 guard failed: '+token)
 
 p.write_text(s,encoding='utf-8',newline='')
-print('Native .kb911 Explorer-open support applied; project icon association refreshed for old files')
+print('Native .kb911 Explorer-open support applied; project icon extracted to LocalAppData and associated directly')
