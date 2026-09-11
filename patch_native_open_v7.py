@@ -47,16 +47,35 @@ static void SetRegString(HKEY root, const std::wstring& keyPath, const wchar_t* 
 }
 
 static void RegisterProjectAssociation() {
+    // KB911_V28_PROJECT_ICON_ASSOC_REFRESH
+    // Refresh all association locations Explorer may use. This also covers an
+    // older UserChoice resolving to Applications\\KB911.exe.
     wchar_t exeBuf[32768]{};
     DWORD n = GetModuleFileNameW(nullptr, exeBuf, static_cast<DWORD>(_countof(exeBuf)));
     if (!n || n >= _countof(exeBuf)) return;
     std::wstring exe(exeBuf, n);
     const std::wstring progId = L"KB911.Project";
+    const std::wstring iconSpec = L"\"" + exe + L"\",-103";
+    const std::wstring openCommand = L"\"" + exe + L"\" \"%1\"";
+
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\.kb911", nullptr, progId);
+    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\.kb911\\OpenWithProgids", L"KB911.Project", L"");
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project", nullptr, L"Проект KB911");
-    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\DefaultIcon", nullptr, L"\"" + exe + L"\",-103");
-    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\shell\\open\\command", nullptr, L"\"" + exe + L"\" \"%1\"");
-    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
+    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\DefaultIcon", nullptr, iconSpec);
+    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\shell\\open\\command", nullptr, openCommand);
+
+    const wchar_t* exeNamePtr = PathFindFileNameW(exe.c_str());
+    std::wstring exeName = (exeNamePtr && *exeNamePtr) ? exeNamePtr : L"KB911.exe";
+    const std::wstring appKey = L"Software\\Classes\\Applications\\" + exeName;
+    SetRegString(HKEY_CURRENT_USER, appKey + L"\\DefaultIcon", nullptr, iconSpec);
+    SetRegString(HKEY_CURRENT_USER, appKey + L"\\shell\\open\\command", nullptr, openCommand);
+    SetRegString(HKEY_CURRENT_USER, appKey + L"\\SupportedTypes", L".kb911", L"");
+
+    SetRegString(HKEY_CURRENT_USER,
+        L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.kb911\\OpenWithProgids",
+        L"KB911.Project", L"");
+
+    SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSH, nullptr, nullptr);
 }
 
 static void SendPendingProjectToWeb() {
@@ -84,5 +103,8 @@ needle='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AW
 replacement='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);\n    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);\n    RegisterProjectAssociation();\n    int argc = 0;\n    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);\n    if (argv) {\n        if (argc > 1 && argv[1] && EndsWithI(argv[1], L".kb911")) g_pendingProjectPath = argv[1];\n        LocalFree(argv);\n    }\n'''
 rep(needle,replacement)
 
+for token in ['KB911_V28_PROJECT_ICON_ASSOC_REFRESH','SHCNF_IDLIST | SHCNF_FLUSH','Software\\\\Classes\\\\Applications\\\\','OpenWithProgids']:
+    if token not in s: raise SystemExit('patch_native_open_v7 v28 guard failed: '+token)
+
 p.write_text(s,encoding='utf-8',newline='')
-print('Native .kb911 Explorer-open support applied; WebView zoom hard-reset after navigation')
+print('Native .kb911 Explorer-open support applied; project icon association refreshed for old files')
