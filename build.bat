@@ -28,6 +28,8 @@ python patch_feature_v7.py
 if errorlevel 1 exit /b 1
 python fix_feature_js_v7.py
 if errorlevel 1 exit /b 1
+python patch_startup_pdf_v8.py
+if errorlevel 1 exit /b 1
 python patch_native.py
 if errorlevel 1 exit /b 1
 python patch_native_open_v7.py
