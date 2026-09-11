@@ -2,7 +2,7 @@
 #include "resource.h"
 
 IDR_APP_HTML RCDATA "..\\app\\KB911.html"
-IDI_APP_ICON ICON "KB911.ico"
+IDI_APP_ICON ICON "..\\build\\KB911.ico"
 
 1 VERSIONINFO
  FILEVERSION 1,0,0,0
