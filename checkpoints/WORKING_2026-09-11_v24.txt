@@ -1,0 +1,17 @@
+KB911 confirmed working base v24
+
+Base commit: 64b9c91da7f3228eaff84e1ab449d05d7eda2695
+
+Confirmed by user:
+- dimensions work
+- text works
+- leaders/callouts work
+- image movement/layers work
+- PNG/JPEG/PDF export works
+- image undo/redo works
+- free three-point line drawing works
+- line style/width/color work
+- line copy/paste works
+- direct physical print removed
+
+Use this branch as rollback point before subsequent small improvements.
