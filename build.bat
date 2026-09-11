@@ -16,6 +16,8 @@ python patch_frame_params.py
 if errorlevel 1 exit /b 1
 python patch_syntax_fix.py
 if errorlevel 1 exit /b 1
+python patch_leader_fix.py
+if errorlevel 1 exit /b 1
 python patch_native.py
 if errorlevel 1 exit /b 1
 if not exist build mkdir build
