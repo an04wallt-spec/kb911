@@ -72,9 +72,9 @@ if not exist packages\Microsoft.Web.WebView2.%WV2_VER% (
 set WV2=packages\Microsoft.Web.WebView2.%WV2_VER%\build\native
 powershell -NoProfile -ExecutionPolicy Bypass -File make_icon.ps1
 if errorlevel 1 exit /b 1
-magick build\KB911_icon.png -define icon:auto-resize=256,128,64,48,40,32,24,20,16 build\KB911.ico
+python -c "import struct,pathlib; p=pathlib.Path(r'build\KB911_icon.png').read_bytes(); pathlib.Path(r'build\KB911.ico').write_bytes(struct.pack('<HHH',0,1,1)+struct.pack('<BBBBHHII',0,0,0,0,1,32,len(p),22)+p)"
 if errorlevel 1 exit /b 1
-magick build\KB911_icon.png -colorspace Gray -define icon:auto-resize=256,128,64,48,40,32,24,20,16 build\KB911_project.ico
+magick build\KB911_project_icon.png -define icon:auto-resize=256,128,64,48,40,32,24,20,16 build\KB911_project.ico
 if errorlevel 1 exit /b 1
 rc /nologo /fo build\resource.res src\resource.rc
 if errorlevel 1 exit /b 1
