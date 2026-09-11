@@ -1,0 +1,31 @@
+('paper'),wrap=document.getElementById('paperWrap');
+const $=id=>document.getElementById(id);
+const sizes={A4:[210,297],A3:[297,420],A2:[420,594],A1:[594,841],A0:[841,1189]};
+let page={w:420,h:297},zoom=1,tool=null,selected=null,hoverDim=null,lastEditable=null,uid=1;
+let dimDraft=null,dimPreview=null,textDraft=null,textPreview=null,drag=null,textResize=null,imageResize=null,endpointDrag=null,tailDrag=null,rotateDrag=null,popupDrag=null,textPopupDrag=null,clipboardItem=null,pasteDraft=null;
+let activeImage=null,saveKind='png',frameState={enabled:false,company:true,logoEnabled:false,name:'',logo:null};
+const builtDim={prefix:'',suffix:'',arrow:'slim',arrowSize:'5',arrowAngle:'10',tailSize:'7',lineWidth:'0.40',lineColor:'#111111',font:'Bahnschrift',fontSize:'4',textColor:'#111111',bold:true,italic:false};
+const builtText={font:'Bahnschrift',fontSize:'4',textColor:'#111111',bg:'#ffffff',bgOpacity:'0',bold:true,angle:'0',align:'center'};
+let dimDefaults=Object.assign({},builtDim,readStore('mm.dimDefaults.v2'));
+let textDefaults=Object.assign({},builtText);
+function readStore(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return {}}}
+function saveStore(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch{}}
+function el(n,a={}){const x=document.createElementNS(NS,n);for(const[k,v]of Object.entries(a))x.setAttribute(k,v);return x}
+function setStatus(s){$('status').textContent=s}
+function pt(e){const r=paper.getBoundingClientRect();return{x:(e.clientX-r.left)*page.w/r.width,y:(e.clientY-r.top)*page.h/r.height}}
+function parsePt(s){const[a,b]=String(s).split(',').map(Number);return{x:a,y:b}}
+function setPage(){let[w,h]=sizes[$('paperSize').value];if($('orientation').value==='landscape')[w,h]=[h,w];page={w,h};paper.setAttribute('viewBox',`0 0 ${w} ${h}`);paper.setAttribute('width',`${w}mm`);paper.setAttribute('height',`${h}mm`);wrap.style.width=`${w}mm`;wrap.style.height=`${h}mm`;applyZoom();updatePrintSize();renderFrame();try{window.chrome?.webview?.postMessage(`KB911_SIZE|${w}|${h}`)}catch{}}
+function updatePrintSize(){let st=$('pageStyle');if(!st){st=document.createElement('style');st.id='pageStyle';document.head.appendChild(st)}st.textContent=`@page{size:${page.w}mm ${page.h}mm;margin:0}`}
+function applyZoom(){wrap.style.transform=`scale(${zoom})`;wrap.style.marginBottom=`${(zoom-1)*page.h*3.78}px`;$('zoomReset').textContent=Math.round(zoom*100)+'%'}
+window.KB911_fitToViewport=function(){const sidebar=265,header=48,pad=78,availW=Math.max(240,innerWidth-sidebar-pad),availH=Math.max(180,innerHeight-header-pad),paperW=page.w*3.7795275591,paperH=page.h*3.7795275591;zoom=Math.max(.25,Math.min(1,availW/paperW,availH/paperH));applyZoom();};
+function groupType(n){return n?.closest?.('[data-type]')||null}
+function clearUI(){paper.querySelectorAll('.selection-ui').forEach(n=>n.remove())}
+function clearSelection(){clearUI();selected=null;showProps()}
+function select(n){clearUI();selected=n;if(n&&['dimension','textW].includes(n.dataset?.type))lastEditable=n;showProps();drawSelection()}
+function setTool(t,force=false){if(!force&&selected&&(tool==='dimension-edit'||tool==='text-edit')&&t!==tool){setStatus('Сначала нажмите OK, чтобы зафиксировать активный объект');return}tool=t||null;document.querySelectorAll('[data-tool]').forEach(b=>b.classList.toggle('active',b.dataset.tool===tool));dimDraft=null;textDraft=null;if(textPreview){textPreview.remove();textPreview=null}if(tool==='dimension')setStatus('Размер: поставьте первую точку и протяните до второй');else if(tool==='text')setStatus('Надпись: растяните область будущего текста');else if(!tool)setStatus('Наведение — перемещение. Двойной щелчок — редактирование')}
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
+function loadImage(file){if(!file)return;const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{let iw=page.w*.70,ih=iw*im.height/im.width;if(ih>page.h*.70){ih=page.h*.70;iw=ih*im.width/im.height}const x=(page.w-iw)/2,y=(page.h-ih)/2;const n=el('image',{href:fr.result,x,y,width:iw,height:ih,preserveAspectRatio:'none','data-type':'image','data-id':uid++,'data-ratio':String(im.width/im.height),opacity:'1'});const frame=paper.querySelector('[data-type=frame]');if(frame)paper.insertBefore(n,frame);else paper.appendChild(n);clearSelection();activeImage=null;tool=null;setStatus('Картинка размещена. Для перемещения или изменения размера дважды щёлкните по ней')};im.src=fr.result};fr.readAsDataURL(file)}
+function imageRect(g){return{x:+g.getAttribute('x'),y:+g.getAttribute('y'),w:+g.getAttribute('width'),h:+g.getAttribute('height')}}
+function drawImageHandles(g){const{x,y,w,h}=imageRect(g);paper.appendChild(el('rect',{x,y,width:w,height:h,rx:1.8,ry:1.8,class:'selbox selection-ui'}));[['nw',x,y],['ne',x+w,y],['sw',x,y+h],['se',x+w,y+h]].forEach(([c,cx,cy])=>paper.appendChild(el('rect',{x:cx-1.5,y:cy-1.5,width:3,height:3,rx:.6,ry:.6,class:`image-handle ${c} selection-ui`,'data-corner':c,'data-owner':g.dataset.id})))}
+function dimGeom(g){const p1=parsePt(g.dataset.p1),p2=parsePt(g.dataset.p2),vx=p2.x-p1.x,vy=p2.y-p1.y,L=Math.hypot(vx,vy)||1,ux=vx/L,uy=vy/L,nx=-uy,ny=ux,ts=+g.dataset.tailSize||7;return{p1,p2,ux,uy,nx,ny,ts}}
+function drawDimHandles(g,hoverOnly=false){if(!g||g.dataset.type!=='dimension')return;const{p1,p2,nx,ny,ts}=dimGeom(g);[[p1,'start'],[p2,'end']].forEach(([p,k])
