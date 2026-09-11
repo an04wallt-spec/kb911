@@ -14,14 +14,12 @@ if start<0 or end<0:
     raise SystemExit('v18: kbLeaderTextPointV17 not found')
 auto=r'''function kbLeaderTextPointV17(g){
  const {p2,p3}=leaderPts(g),fs=+g.dataset.fontSize||4;
- // Manual leader-text coordinates from older builds are intentionally ignored.
  delete g.dataset.textX;delete g.dataset.textY;
  return {x:(p2.x+p3.x)/2,y:p2.y-fs*.85};
 }
 '''
 s=s[:start]+auto+s[end:]
 
-# Replace the live handles function produced by v17 with geometry handles only.
 start=s.find('function drawLeaderHandles(g){', s.find('function kbLeaderTextPointV17'))
 end=s.find('function createLeader(p1,p2){', start)
 if start<0 or end<0:
@@ -34,19 +32,14 @@ handles=r'''function drawLeaderHandles(g){
 '''
 s=s[:start]+handles+s[end:]
 
-# --- 2. Context layer menu must always disappear after an action. ---
-old="function closeImageMenu(){$('imageContextMenu').classList.remove('open');$('imageContextMenu').setAttribute('aria-hidden','true')}"
-new="function closeImageMenu(){const m=$('imageContextMenu');m.classList.remove('open');m.setAttribute('aria-hidden','true');m.style.pointerEvents='none';m.style.display='none'}"
-if old not in s:
-    raise SystemExit('v18: closeImageMenu not found')
-s=s.replace(old,new,1)
+# --- 2. Layer menu hard-close. ---
+open_pat="const m=$('imageContextMenu');m.classList.add('open');m.setAttribute('aria-hidden','false');"
+open_rep="const m=$('imageContextMenu');m.style.display='';m.style.pointerEvents='auto';m.classList.add('open');m.setAttribute('aria-hidden','false');"
+count=s.count(open_pat)
+if count<1:
+    raise SystemExit('v18: imageContextMenu open path not found')
+s=s.replace(open_pat,open_rep)
 
-# Every way of opening the menu clears the hard-close inline styles.
-s=s.replace("const m=$('imageContextMenu');m.classList.add('open');m.setAttribute('aria-hidden','false');",
-            "const m=$('imageContextMenu');m.style.display='';m.style.pointerEvents='auto';m.classList.add('open');m.setAttribute('aria-hidden','false');")
-
-# Close again after the layer action on the next task. This wins over any older
-# bubbling/capture handler that might touch the same menu during the click.
 anchor='// ---------- Native KB911 project format ----------'
 pos=s.find(anchor)
 if pos<0:
@@ -55,13 +48,18 @@ cleanup=r'''
 // KB911_V18_LEADER_TEXT_LOCK_AND_MENU_CLOSE
 $('imageContextMenu').addEventListener('click',e=>{
  if(!e.target.closest('button[data-layer]'))return;
- setTimeout(()=>closeImageMenu(),0);
+ setTimeout(()=>{
+   const m=$('imageContextMenu');
+   m.classList.remove('open');
+   m.setAttribute('aria-hidden','true');
+   m.style.pointerEvents='none';
+   m.style.display='none';
+ },0);
 },false);
 
 '''
 s=s[:pos]+cleanup+s[pos:]
 
-# Final guards.
 if "data-leader-handle':'text'" in s or 'data-leader-handle="text"' in s:
     raise SystemExit('v18: independent leader text handle still present')
 if marker not in s:
