@@ -73,12 +73,11 @@ static void SendPendingProjectToWeb() {
 '''
 rep('static std::wstring GetLocalAppDataDir() {', helpers+'static std::wstring GetLocalAppDataDir() {')
 
-# Do not inherit an old WebView/Chromium zoom factor from the persistent profile.
 rep('''                            g_controller = controller;\n                            controller->get_CoreWebView2(&g_webview);\n                            ResizeWebView();''',
     '''                            g_controller = controller;\n                            controller->put_ZoomFactor(1.0);\n                            controller->get_CoreWebView2(&g_webview);\n                            ResizeWebView();''')
 
 needle='''                            std::wstring url = FileUrl(htmlPath);\n                            g_webview->Navigate(url.c_str());\n                            FitWindowToPaper(420.0, 297.0);'''
-replacement='''                            EventRegistrationToken navToken{};\n                            g_webview->add_NavigationCompleted(\n                                Callback<ICoreWebView2NavigationCompletedEventHandler>(\n                                    [](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs*) -> HRESULT {\n                                        SendPendingProjectToWeb();\n                                        if (g_webview) g_webview->ExecuteScript(L"setTimeout(()=>window.KB911_fitToViewport&&window.KB911_fitToViewport(),180);", nullptr);\n                                        return S_OK;\n                                    }).Get(), &navToken);\n\n                            std::wstring url = FileUrl(htmlPath);\n                            g_webview->Navigate(url.c_str());\n                            FitWindowToPaper(420.0, 297.0);'''
+replacement='''                            EventRegistrationToken navToken{};\n                            g_webview->add_NavigationCompleted(\n                                Callback<ICoreWebView2NavigationCompletedEventHandler>(\n                                    [](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs*) -> HRESULT {\n                                        if (g_controller) g_controller->put_ZoomFactor(1.0);\n                                        SendPendingProjectToWeb();\n                                        if (g_webview) g_webview->ExecuteScript(L"setTimeout(()=>{const p=document.getElementById('paperSize'),o=document.getElementById('orientation');if(p&&o){p.value='A3';o.value='landscape';p.dispatchEvent(new Event('change',{bubbles:true}));}setTimeout(()=>window.KB911_fitToViewport&&window.KB911_fitToViewport(),180);},120);", nullptr);\n                                        return S_OK;\n                                    }).Get(), &navToken);\n\n                            std::wstring url = FileUrl(htmlPath);\n                            g_webview->Navigate(url.c_str());\n                            FitWindowToPaper(420.0, 297.0);'''
 rep(needle,replacement)
 
 needle='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);\n    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);\n'''
@@ -86,4 +85,4 @@ replacement='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONIT
 rep(needle,replacement)
 
 p.write_text(s,encoding='utf-8',newline='')
-print('Native .kb911 Explorer-open support applied, project icon retained, WebView zoom reset')
+print('Native .kb911 Explorer-open support applied; WebView zoom hard-reset after navigation')
