@@ -1,0 +1,32 @@
+name: Build KB911 Windows
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup NuGet
+        uses: nuget/setup-nuget@v2
+
+      - name: Setup MSVC x64
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build KB911.exe
+        shell: cmd
+        run: build.bat
+
+      - name: Upload KB911.exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: KB911-Windows
+          path: build/KB911.exe
+          if-no-files-found: error
