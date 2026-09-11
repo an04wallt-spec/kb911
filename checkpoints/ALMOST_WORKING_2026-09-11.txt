@@ -1,0 +1,6 @@
+KB911 almost-working checkpoint
+Date: 2026-09-11
+Commit: 78047da21b6f12430285bfe1b495966bbadcbfb6
+Confirmed by user: leader creation works; image movement works; most functionality works.
+Known defects at this checkpoint: dimension value editing/re-editing is broken; text font-size editing is broken.
+This checkpoint must remain available as rollback reference while repairing editing step-by-step.
