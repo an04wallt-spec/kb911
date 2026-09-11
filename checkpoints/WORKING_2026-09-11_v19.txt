@@ -1,0 +1,6 @@
+KB911 working checkpoint
+Date: 2026-09-11
+Commit: 943239e6b8be9db5949deec1a98b2ab0638b6ada
+Branch: checkpoint-working-2026-09-11-v19
+Confirmed by user: leader works correctly; layer menu front/back now closes correctly; core editing and image movement are working.
+Next investigation starts from this checkpoint: printing from the application.
