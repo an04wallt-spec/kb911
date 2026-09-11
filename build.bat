@@ -22,7 +22,11 @@ python patch_project_v1.py
 if errorlevel 1 exit /b 1
 python patch_project_persistence_v2.py
 if errorlevel 1 exit /b 1
+python patch_feature_v7.py
+if errorlevel 1 exit /b 1
 python patch_native.py
+if errorlevel 1 exit /b 1
+python patch_native_open_v7.py
 if errorlevel 1 exit /b 1
 if not exist build mkdir build
 python -c "from pathlib import Path; import re; s=Path(r'app\KB911.html').read_text(encoding='utf-8'); m=re.search(r'<script>([\s\S]*?)</script>',s); assert m, 'script not found'; Path(r'build\kb911_check.js').write_text(m.group(1),encoding='utf-8')"
