@@ -45,7 +45,7 @@ if errorlevel 1 exit /b 1
 python patch_native_open_v7.py
 if errorlevel 1 exit /b 1
 if not exist build mkdir build
-python -c "from pathlib import Path; import re; s=Path(r'app\KB911.html').read_text(encoding='utf-8'); assert 'KB911_V10_CORE_INTERACTIONS' in s; assert 'KB911_V12_EDITING_CORE' in s; assert 'KB911_V13_LEADER_EXPORT_REPAIR' in s; assert \"if(tool==='dimension')\" in s; assert \"if(activeImage!==obj){drag=null;return}\" in s; assert \"['dimText','value']\" in s; assert \"['fontSize','fontSize']\" in s; assert \"['textSize','fontSize']\" in s; assert 'editText(obj)' in s; assert 'kbRenderCurrentSheetCanvasV13' in s; assert \"data-leader-handle':'text\" in s; m=re.search(r'<script>([\s\S]*?)</script>',s); assert m, 'script not found'; Path(r'build\kb911_check.js').write_text(m.group(1),encoding='utf-8')"
+python -c "from pathlib import Path; import re; s=Path(r'app\KB911.html').read_text(encoding='utf-8'); assert 'KB911_V10_CORE_INTERACTIONS' in s; assert 'KB911_V12_EDITING_CORE' in s; assert 'KB911_V13_LEADER_EXPORT_REPAIR' in s; assert \"if(tool==='dimension')\" in s; assert \"if(activeImage!==obj){drag=null;return}\" in s; assert \"['dimText','value']\" in s; assert \"['fontSize','fontSize']\" in s; assert \"['textSize','fontSize']\" in s; assert 'editText(obj)' in s; assert 'kbRenderCurrentSheetCanvasV13' in s; assert 'kb-leader-edit-handle' in s; assert 'kbLeaderPopupDrag' in s; m=re.search(r'<script>([\s\S]*?)</script>',s); assert m, 'script not found'; Path(r'build\kb911_check.js').write_text(m.group(1),encoding='utf-8')"
 if errorlevel 1 exit /b 1
 node --check build\kb911_check.js
 if errorlevel 1 exit /b 1
