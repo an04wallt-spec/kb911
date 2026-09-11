@@ -14,6 +14,10 @@ if not exist packages\Microsoft.Web.WebView2.%WV2_VER% (
 )
 set WV2=packages\Microsoft.Web.WebView2.%WV2_VER%\build\native
 if not exist build mkdir build
+powershell -NoProfile -ExecutionPolicy Bypass -File make_icon.ps1
+if errorlevel 1 exit /b 1
+python -c "import struct,pathlib; p=pathlib.Path(r'build\KB911_icon.png').read_bytes(); pathlib.Path(r'build\KB911.ico').write_bytes(struct.pack('<HHH',0,1,1)+struct.pack('<BBBBHHII',0,0,0,0,1,32,len(p),22)+p)"
+if errorlevel 1 exit /b 1
 rc /nologo /fo build\resource.res src\resource.rc
 if errorlevel 1 exit /b 1
 cl /nologo /std:c++17 /EHsc /O2 /DUNICODE /D_UNICODE /I "%WV2%\include" src\main.cpp build\resource.res ^
