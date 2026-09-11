@@ -54,7 +54,9 @@ static void RegisterProjectAssociation() {
     const std::wstring progId = L"KB911.Project";
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\.kb911", nullptr, progId);
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project", nullptr, L"Проект KB911");
-    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\DefaultIcon", nullptr, L"\"" + exe + L"\",0");
+    // Negative resource id tells Explorer to use the dedicated gray project icon
+    // embedded in this same portable EXE, while the application icon remains black.
+    SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\DefaultIcon", nullptr, L"\"" + exe + L"\",-103");
     SetRegString(HKEY_CURRENT_USER, L"Software\\Classes\\KB911.Project\\shell\\open\\command", nullptr, L"\"" + exe + L"\" \"%1\"");
     SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST, nullptr, nullptr);
 }
@@ -74,7 +76,7 @@ static void SendPendingProjectToWeb() {
 rep('static std::wstring GetLocalAppDataDir() {', helpers+'static std::wstring GetLocalAppDataDir() {')
 
 needle='''                            std::wstring url = FileUrl(htmlPath);\n                            g_webview->Navigate(url.c_str());\n                            FitWindowToPaper(420.0, 297.0);'''
-replacement='''                            EventRegistrationToken navToken{};\n                            g_webview->add_NavigationCompleted(\n                                Callback<ICoreWebView2NavigationCompletedEventHandler>(\n                                    [](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs*) -> HRESULT {\n                                        SendPendingProjectToWeb();\n                                        return S_OK;\n                                    }).Get(), &navToken);\n\n                            std::wstring url = FileUrl(htmlPath);\n                            g_webview->Navigate(url.c_str());\n                            FitWindowToPaper(420.0, 297.0);'''
+replacement='''                            EventRegistrationToken navToken{};\n                            g_webview->add_NavigationCompleted(\n                                Callback<ICoreWebView2NavigationCompletedEventHandler>(\n                                    [](ICoreWebView2*, ICoreWebView2NavigationCompletedEventArgs*) -> HRESULT {\n                                        SendPendingProjectToWeb();\n                                        if (g_webview) g_webview->ExecuteScript(L"setTimeout(()=>window.KB911_fitToViewport&&window.KB911_fitToViewport(),180);", nullptr);\n                                        return S_OK;\n                                    }).Get(), &navToken);\n\n                            std::wstring url = FileUrl(htmlPath);\n                            g_webview->Navigate(url.c_str());\n                            FitWindowToPaper(420.0, 297.0);'''
 rep(needle,replacement)
 
 needle='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);\n    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);\n'''
@@ -82,4 +84,4 @@ replacement='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONIT
 rep(needle,replacement)
 
 p.write_text(s,encoding='utf-8',newline='')
-print('Native .kb911 Explorer-open support applied')
+print('Native .kb911 Explorer-open support applied with dedicated project icon')
