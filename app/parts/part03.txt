@@ -1,0 +1,61 @@
+ать место и сохранить».</div>
+    <div class="save-actions"><button id="saveCancel">Отмена</button><button id="saveConfirm" class="primary">Выбрать место и сохранить</button></div>
+  </div>
+</div>
+
+<div id="imageContextMenu" aria-hidden="true">
+  <button data-layer="front">Поверх других картинок</button>
+  <button data-layer="back">Под другими картинками</button>
+</div>
+<div id="dimPopup" aria-hidden="true">
+  <div id="dimPopupHeader">Настройка размерной линии <span class="spacer"></span><button id="dimPopupClose" title="Закрыть">×</button></div>
+  <div id="dimPopupBody">
+    <div class="dp-top">
+      <div><div class="dp-label">Префикс</div><input id="dimPrefix" class="dp-field" type="text" placeholder="Ø"></div>
+      <div><div class="dp-label">Размер</div><input id="dimText" class="dp-field" type="text" value="500"></div>
+      <div><div class="dp-label">Суффикс</div><input id="dimSuffix" class="dp-field" type="text"></div>
+    </div>
+    <div class="dp-grid">
+      <div><div class="dp-label">Тип стрелки</div><select id="arrowStyle" class="dp-field"><option value="needle">Закрытая тонкая</option><option value="slim" selected>Закрытая узкая</option><option value="closed">Закрытая классическая</option><option value="open">Открытая</option><option value="slash">Засечка</option><option value="dot">Точка</option></select></div>
+      <div><div class="dp-label">Угол стрелки, °</div><input id="arrowAngle" class="dp-field" type="number" min="5" max="60" step="1" value="18"></div>
+      <div><div class="dp-label">Размер стрелки, мм</div><input id="arrowSize" class="dp-field" type="number" min="1" max="20" step="0.5" value="5"></div>
+      <div><div class="dp-label">Высота хвостиков, мм</div><input id="tailSize" class="dp-field" type="number" min="1" max="40" step="0.5" value="7"></div>
+      <div><div class="dp-label">Толщина линии, мм</div><input id="lineWidth" class="dp-field" type="number" min="0.1" max="5" step="0.05" value="0.40"></div>
+      <div><div class="dp-label">Шрифт</div><select id="fontFamily" class="dp-field"><option>Arial</option><option selected>Bahnschrift</option><option>Segoe UI</option><option>Tahoma</option><option>Verdana</option><option>Times New Roman</option></select></div>
+      <div><div class="dp-label">Высота текста, мм</div><input id="fontSize" class="dp-field" type="number" min="1.5" max="30" step="0.5" value="4"></div>
+      <div class="dp-full dp-checks">
+        <label><input id="fontBold" type="checkbox" checked> Жирный</label>
+        <label><input id="fontItalic" type="checkbox"> Курсив</label>
+      </div>
+      <div><div class="dp-label">Цвет линии и стрелок</div><div class="color-row"><input id="lineColor" type="color" value="#111111"><span>Размерная линия</span></div></div>
+      <div><div class="dp-label">Цвет текста</div><div class="color-row"><input id="textColor" type="color" value="#111111"><span>Цифры</span></div></div>
+    </div>
+    <div class="dp-actions"><button id="dimSetDefault">По умолчанию</button><button id="dimPopupOk" class="primary">OK</button></div>
+  </div>
+</div>
+
+<div id="textPopup" aria-hidden="true">
+  <div id="textPopupHeader">Настройка надписи <span class="spacer"></span><button id="textPopupClose" title="Закрыть">×</button></div>
+  <div id="textPopupBody">
+    <div class="tp-grid">
+      <div class="tp-full"><div class="tp-label">Текст</div><input id="textValue" class="tp-field" type="text"></div>
+      <div><div class="tp-label">Ширина, мм</div><input id="textBoxW" class="tp-field" type="number" min="5" max="1000" step="1" value="60"></div>
+      <div><div class="tp-label">Высота, мм</div><input id="textBoxH" class="tp-field" type="number" min="5" max="1000" step="1" value="18"></div>
+      <div><div class="tp-label">Шрифт</div><select id="textFont" class="tp-field"><option>Arial</option><option selected>Bahnschrift</option><option>Segoe UI</option><option>Tahoma</option><option>Verdana</option><option>Times New Roman</option></select></div>
+      <div><div class="tp-label">Высота текста, мм</div><input id="textSize" class="tp-field" type="number" min="1.5" max="50" step="0.5" value="4"></div>
+      <div><div class="tp-label">Расположение текста</div><select id="textAlign" class="tp-field"><option value="left">Слева</option><option value="center" selected>По центру</option><option value="right">Справа</option></select></div>
+      <div class="tp-full tp-checks"><label><input id="textBold" type="checkbox" checked> Жирный</label></div>
+      <div><div class="tp-label">Угол, °</div><input id="textAngle" class="tp-field" type="number" min="-180" max="180" step="1" value="0"></div>
+      <div><div class="tp-label">Цвет текста</div><div class="color-row"><input id="textFill" type="color" value="#111111"><span>Надпись</span></div></div>
+      <div><div class="tp-label">Цвет заливки</div><div class="color-row"><input id="textBg" type="color" value="#ffffff"><span>Фон</span></div></div>
+      <div><div class="tp-label">Прозрачность фона</div><input id="textBgOpacity" class="tp-field" type="range" min="0" max="1" step="0.01" value="0"></div>
+    </div>
+    <div class="tp-note">Надпись фиксируется кнопкой OK, клавишей Esc или Ctrl+Enter.</div>
+    <div class="tp-actions"><button id="textOk" class="primary">OK</button></div>
+  </div>
+</div>
+</div>
+<script>
+(()=>{
+const NS='http://www.w3.org/2000/svg';
+const paper=document.getElementById
