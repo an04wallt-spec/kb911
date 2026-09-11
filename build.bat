@@ -16,7 +16,7 @@ rc /nologo /fo build\resource.res src\resource.rc
 if errorlevel 1 exit /b 1
 cl /nologo /std:c++17 /EHsc /O2 /DUNICODE /D_UNICODE /I "%WV2%\include" src\main.cpp build\resource.res ^
  /link /SUBSYSTEM:WINDOWS /OUT:build\KB911.exe /LIBPATH:"%WV2%\x64" WebView2LoaderStatic.lib ^
- user32.lib shell32.lib shlwapi.lib ole32.lib version.lib
+ user32.lib shell32.lib shlwapi.lib ole32.lib version.lib advapi32.lib
 if errorlevel 1 exit /b 1
 echo.
 echo Built: build\KB911.exe
