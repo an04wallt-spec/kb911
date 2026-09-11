@@ -1,0 +1,19 @@
+KB911 confirmed working checkpoint
+Date: 2026-09-11
+Commit: cb0ac9dd3abd5b65c626f8fb2a30db133f309f73
+Branch: checkpoint-working-2026-09-11-v21
+
+Confirmed by user as working:
+- leader/callout creation and editing
+- dimensions and text editing
+- image movement/editing
+- front/back layer menu closes correctly
+- PNG export works
+- JPEG export works
+- PDF export works
+
+Policy for further development:
+- treat this checkpoint as the safe rollback base
+- make only small, isolated improvements
+- do not rewrite working subsystems unnecessarily
+- verify each change against this checkpoint to avoid regressions
