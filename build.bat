@@ -22,6 +22,8 @@ python patch_project_v1.py
 if errorlevel 1 exit /b 1
 python patch_project_persistence_v2.py
 if errorlevel 1 exit /b 1
+python fix_feature_wrapper.py
+if errorlevel 1 exit /b 1
 python patch_feature_v7.py
 if errorlevel 1 exit /b 1
 python patch_native.py
