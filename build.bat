@@ -44,12 +44,14 @@ python patch_layer_menu_v19.py
 if errorlevel 1 exit /b 1
 python patch_print_v20.py
 if errorlevel 1 exit /b 1
+python patch_image_menu_compat_v21.py
+if errorlevel 1 exit /b 1
 python patch_native.py
 if errorlevel 1 exit /b 1
 python patch_native_open_v7.py
 if errorlevel 1 exit /b 1
 if not exist build mkdir build
-python -c "from pathlib import Path; import re; s=Path(r'app\KB911.html').read_text(encoding='utf-8'); assert 'KB911_V10_CORE_INTERACTIONS' in s; assert 'KB911_V12_EDITING_CORE' in s; assert 'KB911_V17_LEADER_CORE_IN_SCOPE' in s; assert 'KB911_V18_LEADER_TEXT_LOCK_AND_MENU_CLOSE' in s; assert 'KB911_V19_LAYER_MENU_SINGLE_OWNER' in s; assert 'KB911_V20_PRINT_RESTORE' in s; assert 'KB911_V11_EDITING_REPAIR' not in s; assert 'KB911_V13_LEADER_EXPORT_REPAIR' not in s; assert 'KB911_V15_LEADER_CORE_FIX' not in s; assert 'KB911_V16_LEADER_NATIVE_CORE' not in s; assert \"if(tool==='dimension')\" in s; assert \"if(activeImage!==obj){drag=null;return}\" in s; assert \"['dimText','value']\" in s; assert \"['fontSize','fontSize']\" in s; assert \"['textSize','fontSize']\" in s; assert 'editText(obj)' in s; assert 'kbLeaderTextPointV17' in s; assert \"data-leader-handle':'text\" not in s; assert 'kbLeaderPopupDragV17' in s; assert 'kbInstallLayerMenuV19' in s; assert \"setProperty('display','none','important')\" in s; assert 'id=\\\"printSheet\\\"' in s; assert 'function kbPrintCurrentSheetV20()' in s; assert 'window.print()' in s; assert 'updatePrintSize()' in s; m=re.search(r'<script>([\s\S]*?)</script>',s); assert m, 'script not found'; Path(r'build\kb911_check.js').write_text(m.group(1),encoding='utf-8')"
+python -c "from pathlib import Path; import re; s=Path(r'app\KB911.html').read_text(encoding='utf-8'); assert 'KB911_V10_CORE_INTERACTIONS' in s; assert 'KB911_V12_EDITING_CORE' in s; assert 'KB911_V17_LEADER_CORE_IN_SCOPE' in s; assert 'KB911_V18_LEADER_TEXT_LOCK_AND_MENU_CLOSE' in s; assert 'KB911_V19_LAYER_MENU_SINGLE_OWNER' in s; assert 'KB911_V20_PRINT_RESTORE' in s; assert 'KB911_V21_IMAGE_MENU_COMPAT' in s; assert 'KB911_V11_EDITING_REPAIR' not in s; assert 'KB911_V13_LEADER_EXPORT_REPAIR' not in s; assert 'KB911_V15_LEADER_CORE_FIX' not in s; assert 'KB911_V16_LEADER_NATIVE_CORE' not in s; assert \"if(tool==='dimension')\" in s; assert \"if(activeImage!==obj){drag=null;return}\" in s; assert \"['dimText','value']\" in s; assert \"['fontSize','fontSize']\" in s; assert \"['textSize','fontSize']\" in s; assert 'editText(obj)' in s; assert 'kbLeaderTextPointV17' in s; assert \"data-leader-handle':'text\" not in s; assert 'kbLeaderPopupDragV17' in s; assert 'kbInstallLayerMenuV19' in s; assert \"setProperty('display','none','important')\" in s; assert 'id=\\\"printSheet\\\"' in s; assert 'function kbPrintCurrentSheetV20()' in s; assert 'window.print()' in s; assert 'updatePrintSize()' in s; assert 'function closeImageMenu()' in s; assert 'function openImageMenu(img,e)' in s; m=re.search(r'<script>([\s\S]*?)</script>',s); assert m, 'script not found'; Path(r'build\kb911_check.js').write_text(m.group(1),encoding='utf-8')"
 if errorlevel 1 exit /b 1
 node --check build\kb911_check.js
 if errorlevel 1 exit /b 1
