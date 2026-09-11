@@ -241,7 +241,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow) {
     InitWebView(hInst);
 
     MSG m{};
-    while (GetMessageW(&m, nullptr, 0) > 0) {
+    while (GetMessageW(&m, nullptr, 0, 0) > 0) {
         TranslateMessage(&m);
         DispatchMessageW(&m);
     }
