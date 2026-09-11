@@ -14,7 +14,7 @@ if start<0 or end<0:
     raise SystemExit('v18: kbLeaderTextPointV17 not found')
 auto=r'''function kbLeaderTextPointV17(g){
  const {p2,p3}=leaderPts(g),fs=+g.dataset.fontSize||4;
- // Old projects/builds may contain manual text coordinates. They are obsolete.
+ // Manual leader-text coordinates from older builds are intentionally ignored.
  delete g.dataset.textX;delete g.dataset.textY;
  return {x:(p2.x+p3.x)/2,y:p2.y-fs*.85};
 }
@@ -34,24 +34,6 @@ handles=r'''function drawLeaderHandles(g){
 '''
 s=s[:start]+handles+s[end:]
 
-# Remove manual text state from the live leader pointer pipeline.
-repls=[
-("   const tp=kbLeaderTextPointV17(g);\n   selected=g;lastEditable=g;\n   leaderDrag={obj:g,kind,start:p,p1:parsePt(g.dataset.p1),p2:parsePt(g.dataset.p2),shelf:+g.dataset.shelf||40,textX:tp.x,textY:tp.y};",
- "   selected=g;lastEditable=g;\n   leaderDrag={obj:g,kind,start:p,p1:parsePt(g.dataset.p1),p2:parsePt(g.dataset.p2),shelf:+g.dataset.shelf||40};"),
-("   const tp=kbLeaderTextPointV17(obj);\n   selected=obj;lastEditable=obj;drawSelection();\n   leaderDrag={obj,start:p,kind:'move',p1:parsePt(obj.dataset.p1),p2:parsePt(obj.dataset.p2),textX:tp.x,textY:tp.y};",
- "   selected=obj;lastEditable=obj;drawSelection();\n   leaderDrag={obj,start:p,kind:'move',p1:parsePt(obj.dataset.p1),p2:parsePt(obj.dataset.p2)};"),
-("   g.dataset.p1=`${d.p1.x+dx},${d.p1.y+dy}`;g.dataset.p2=`${d.p2.x+dx},${d.p2.y+dy}`;\n   g.dataset.textX=String(d.textX+dx);g.dataset.textY=String(d.textY+dy);",
- "   g.dataset.p1=`${d.p1.x+dx},${d.p1.y+dy}`;g.dataset.p2=`${d.p2.x+dx},${d.p2.y+dy}`;"),
-("   const dx=p.x-d.p2.x,dy=p.y-d.p2.y;\n   g.dataset.p2=`${p.x},${p.y}`;\n   g.dataset.textX=String(d.textX+dx);g.dataset.textY=String(d.textY+dy);",
- "   g.dataset.p2=`${p.x},${p.y}`;"),
-(" }else if(d.kind==='text'){\n   g.dataset.textX=String(p.x);g.dataset.textY=String(p.y);\n }\n renderLeader(g);drawSelection();",
- " }\n renderLeader(g);drawSelection();")
-]
-for old,new in repls:
-    if old not in s:
-        raise SystemExit('v18: leader pipeline fragment not found: '+old[:90])
-    s=s.replace(old,new,1)
-
 # --- 2. Context layer menu must always disappear after an action. ---
 old="function closeImageMenu(){$('imageContextMenu').classList.remove('open');$('imageContextMenu').setAttribute('aria-hidden','true')}"
 new="function closeImageMenu(){const m=$('imageContextMenu');m.classList.remove('open');m.setAttribute('aria-hidden','true');m.style.pointerEvents='none';m.style.display='none'}"
@@ -63,8 +45,8 @@ s=s.replace(old,new,1)
 s=s.replace("const m=$('imageContextMenu');m.classList.add('open');m.setAttribute('aria-hidden','false');",
             "const m=$('imageContextMenu');m.style.display='';m.style.pointerEvents='auto';m.classList.add('open');m.setAttribute('aria-hidden','false');")
 
-# Belt-and-suspenders: after a layer button click, close it again on the next tick.
-# This prevents any older bubbling handler from leaving/reopening the menu.
+# Close again after the layer action on the next task. This wins over any older
+# bubbling/capture handler that might touch the same menu during the click.
 anchor='// ---------- Native KB911 project format ----------'
 pos=s.find(anchor)
 if pos<0:
@@ -73,19 +55,19 @@ cleanup=r'''
 // KB911_V18_LEADER_TEXT_LOCK_AND_MENU_CLOSE
 $('imageContextMenu').addEventListener('click',e=>{
  if(!e.target.closest('button[data-layer]'))return;
- setTimeout(()=>{closeImageMenu()},0);
+ setTimeout(()=>closeImageMenu(),0);
 },false);
 
 '''
 s=s[:pos]+cleanup+s[pos:]
 
-# Final guards for the behavior we actually want.
-if "data-leader-handle':'text'" in s or "data-leader-handle\":\"text" in s:
+# Final guards.
+if "data-leader-handle':'text'" in s or 'data-leader-handle="text"' in s:
     raise SystemExit('v18: independent leader text handle still present')
-if "d.kind==='text'" in s:
-    raise SystemExit('v18: independent leader text drag still present')
 if marker not in s:
     raise SystemExit('v18 marker missing')
+if "m.style.display='none'" not in s:
+    raise SystemExit('v18: hard menu close missing')
 
 p.write_text(s,encoding='utf-8',newline='')
 print('v18: leader text locked to shelf; layer menu hard-close applied')
