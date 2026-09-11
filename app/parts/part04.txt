@@ -11,10 +11,29 @@ function pt(e){const r=paper.getBoundingClientRect();return{x:(e.clientX-r.left)
 function parsePt(s){const[a,b]=String(s).split(',').map(Number);return{x:a,y:b}}
 function setPage(){let[w,h]=sizes[$('paperSize').value];if($('orientation').value==='landscape')[w,h]=[h,w];page={w,h};paper.setAttribute('viewBox',`0 0 ${w} ${h}`);paper.setAttribute('width',`${w}mm`);paper.setAttribute('height',`${h}mm`);wrap.style.width=`${w}mm`;wrap.style.height=`${h}mm`;applyZoom();updatePrintSize();renderFrame();try{window.chrome?.webview?.postMessage(`KB911_SIZE|${w}|${h}`)}catch{}}
 function updatePrintSize(){let st=$('pageStyle');if(!st){st=document.createElement('style');st.id='pageStyle';document.head.appendChild(st)}st.textContent=`@page{size:${page.w}mm ${page.h}mm;margin:0}`}
-function applyZoom(){wrap.style.transform='none';wrap.style.marginBottom='0';wrap.style.zoom=String(zoom);$('zoomReset').textContent=Math.round(zoom*100)+'%'}
-function zoomAtClientPoint(clientX,clientY,nextZoom){const old=Math.max(.01,zoom),before=wrap.getBoundingClientRect(),nx=Math.max(.25,Math.min(6,nextZoom));if(Math.abs(nx-old)<.0001)return;const ux=before.width?Math.max(0,Math.min(1,(clientX-before.left)/before.width)):.5,uy=before.height?Math.max(0,Math.min(1,(clientY-before.top)/before.height)):.5;zoom=nx;applyZoom();requestAnimationFrame(()=>{const after=wrap.getBoundingClientRect(),targetX=after.left+ux*after.width,targetY=after.top+uy*after.height;viewport.scrollLeft+=targetX-clientX;viewport.scrollTop+=targetY-clientY})}
+function paperStage(){let st=document.getElementById('paperStage');if(st)return st;st=document.createElement('div');st.id='paperStage';st.style.position='relative';st.style.minWidth='100%';st.style.minHeight='100%';viewport.style.display='block';viewport.style.padding='0';viewport.style.justifyContent='initial';viewport.insertBefore(st,wrap);st.appendChild(wrap);wrap.style.position='absolute';wrap.style.transformOrigin='top left';return st}
+function layoutCanvas(){
+ const stage=paperStage(),baseW=wrap.offsetWidth||1,baseH=wrap.offsetHeight||1,pad=34;
+ const scaledW=baseW*zoom,scaledH=baseH*zoom;
+ const vw=Math.max(1,viewport.clientWidth),vh=Math.max(1,viewport.clientHeight);
+ const sw=Math.max(vw,scaledW+pad*2),sh=Math.max(vh,scaledH+pad*2);
+ stage.style.width=sw+'px';stage.style.height=sh+'px';
+ wrap.style.left=Math.max(pad,(sw-scaledW)/2)+'px';wrap.style.top=pad+'px';
+}
+function applyZoom(){wrap.style.zoom='';wrap.style.marginBottom='0';wrap.style.transform=`scale(${zoom})`;layoutCanvas();$('zoomReset').textContent=Math.round(zoom*100)+'%'}
+function zoomAtClientPoint(clientX,clientY,nextZoom){
+ const before=wrap.getBoundingClientRect(),nx=Math.max(.25,Math.min(6,nextZoom));
+ if(Math.abs(nx-zoom)<.0001)return;
+ const logicalX=Math.max(0,Math.min(wrap.offsetWidth,(clientX-before.left)/Math.max(.0001,zoom)));
+ const logicalY=Math.max(0,Math.min(wrap.offsetHeight,(clientY-before.top)/Math.max(.0001,zoom)));
+ zoom=nx;applyZoom();
+ const after=wrap.getBoundingClientRect();
+ const targetX=after.left+logicalX*zoom,targetY=after.top+logicalY*zoom;
+ viewport.scrollLeft+=targetX-clientX;viewport.scrollTop+=targetY-clientY;
+}
 window.addEventListener('wheel',e=>{if(!(e.ctrlKey||e.metaKey))return;const r=viewport.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)return;e.preventDefault();e.stopPropagation();const factor=e.deltaY<0?1.12:1/1.12;zoomAtClientPoint(e.clientX,e.clientY,zoom*factor);setStatus('Масштаб '+Math.round(zoom*100)+'%')},{passive:false,capture:true});
-window.KB911_fitToViewport=function(){const sidebar=265,header=48,pad=78,availW=Math.max(240,innerWidth-sidebar-pad),availH=Math.max(180,innerHeight-header-pad),paperW=page.w*3.7795275591,paperH=page.h*3.7795275591;zoom=Math.max(.25,Math.min(1,availW/paperW,availH/paperH));applyZoom();};
+window.KB911_fitToViewport=function(){const sidebar=265,header=48,pad=78,availW=Math.max(240,innerWidth-sidebar-pad),availH=Math.max(180,innerHeight-header-pad),paperW=page.w*3.7795275591,paperH=page.h*3.7795275591;zoom=Math.max(.25,Math.min(1,availW/paperW,availH/paperH));applyZoom();viewport.scrollLeft=0;viewport.scrollTop=0;};
+window.addEventListener('resize',()=>layoutCanvas());
 function groupType(n){return n?.closest?.('[data-type]')||null}
 function clearUI(){paper.querySelectorAll('.selection-ui').forEach(n=>n.remove())}
 function clearSelection(){clearUI();selected=null;showProps()}
