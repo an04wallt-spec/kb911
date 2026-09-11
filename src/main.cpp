@@ -224,8 +224,10 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow) {
     wc.hCursor = LoadCursorW(nullptr, IDC_ARROW);
     wc.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_WINDOW + 1);
     wc.lpszClassName = L"KB911WindowClass";
-    wc.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
-    wc.hIconSm = wc.hIcon;
+    wc.hIcon = static_cast<HICON>(LoadImageW(hInst, MAKEINTRESOURCEW(IDI_APP_ICON), IMAGE_ICON, 0, 0, LR_DEFAULTSIZE));
+    if (!wc.hIcon) wc.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+    wc.hIconSm = static_cast<HICON>(LoadImageW(hInst, MAKEINTRESOURCEW(IDI_APP_ICON), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR));
+    if (!wc.hIconSm) wc.hIconSm = wc.hIcon;
     RegisterClassExW(&wc);
 
     g_hwnd = CreateWindowExW(0, wc.lpszClassName, L"KB911",
@@ -239,7 +241,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE, PWSTR, int nCmdShow) {
     InitWebView(hInst);
 
     MSG m{};
-    while (GetMessageW(&m, nullptr, 0, 0) > 0) {
+    while (GetMessageW(&m, nullptr, 0) > 0) {
         TranslateMessage(&m);
         DispatchMessageW(&m);
     }
