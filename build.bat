@@ -6,6 +6,8 @@ if not exist app\KB911.html (
 )
 (for %%F in (app\parts\part*.txt) do @type "%%F") > app\KB911.html
 if errorlevel 1 exit /b 1
+python patch_ui.py app\KB911.html
+if errorlevel 1 exit /b 1
 if not exist packages\Microsoft.Web.WebView2.%WV2_VER% (
   nuget install Microsoft.Web.WebView2 -Version %WV2_VER% -OutputDirectory packages
   if errorlevel 1 exit /b 1
