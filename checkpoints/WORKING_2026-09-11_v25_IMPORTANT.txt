@@ -1,0 +1,24 @@
+KB911 — FIRST IMPORTANT WORKING VERSION
+Date: 2026-09-11
+Base commit: a3aed93fa23f538e251dcc015aa24db339e58001
+Branch: checkpoint-working-2026-09-11-v25-important
+
+User-confirmed working baseline.
+
+Confirmed/accepted behavior:
+- dimensions work;
+- text works;
+- images work;
+- leader/callout works;
+- layer front/back controls work;
+- PNG/JPEG/PDF export works;
+- direct physical-print feature removed;
+- line tool works as a free 3-point polyline;
+- line width/color/style settings work;
+- line Ctrl+C/Ctrl+V works;
+- line midpoint can be deleted with Del to convert polyline to straight line;
+- leader and line control handles visually match the large dimension endpoint handle size;
+- image center label is "По центру";
+- image undo/redo arrows are present.
+
+Treat this checkpoint as the first important stable base. Future changes must be small, isolated, and must not regress this behavior.
