@@ -16,6 +16,7 @@ python patch_frame_params.py
 if errorlevel 1 exit /b 1
 python patch_native.py
 if errorlevel 1 exit /b 1
+if not exist build mkdir build
 python -c "from pathlib import Path; import re; s=Path(r'app\KB911.html').read_text(encoding='utf-8'); m=re.search(r'<script>([\s\S]*?)</script>',s); assert m, 'script not found'; Path(r'build\kb911_check.js').write_text(m.group(1),encoding='utf-8')"
 if errorlevel 1 exit /b 1
 node --check build\kb911_check.js
@@ -25,7 +26,6 @@ if not exist packages\Microsoft.Web.WebView2.%WV2_VER% (
   if errorlevel 1 exit /b 1
 )
 set WV2=packages\Microsoft.Web.WebView2.%WV2_VER%\build\native
-if not exist build mkdir build
 powershell -NoProfile -ExecutionPolicy Bypass -File make_icon.ps1
 if errorlevel 1 exit /b 1
 python -c "import struct,pathlib; p=pathlib.Path(r'build\KB911_icon.png').read_bytes(); pathlib.Path(r'build\KB911.ico').write_bytes(struct.pack('<HHH',0,1,1)+struct.pack('<BBBBHHII',0,0,0,0,1,32,len(p),22)+p)"
