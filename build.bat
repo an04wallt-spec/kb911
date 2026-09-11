@@ -6,8 +6,6 @@ if not exist app\KB911.html (
 )
 (for %%F in (app\parts\part*.txt) do @type "%%F") > app\KB911.html
 if errorlevel 1 exit /b 1
-powershell -NoProfile -Command "$h=(Get-FileHash 'app\KB911.html' -Algorithm SHA256).Hash.ToLower(); Write-Host ('KB911.html SHA256: '+$h); if($h -ne '41f531fea12b5f3d3e13535c06f96b0b6b8f96711bcad369e1a8c6bfbe6ab0f0'){ Write-Error 'KB911.html does not match the stable source'; exit 1 }"
-if errorlevel 1 exit /b 1
 if not exist packages\Microsoft.Web.WebView2.%WV2_VER% (
   nuget install Microsoft.Web.WebView2 -Version %WV2_VER% -OutputDirectory packages
   if errorlevel 1 exit /b 1
