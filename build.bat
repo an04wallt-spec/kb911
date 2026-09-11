@@ -10,6 +10,8 @@ python patch_ui.py app\KB911.html
 if errorlevel 1 exit /b 1
 python patch_v4.py app\KB911.html
 if errorlevel 1 exit /b 1
+python patch_dimension_fix.py
+if errorlevel 1 exit /b 1
 python patch_native.py
 if errorlevel 1 exit /b 1
 if not exist packages\Microsoft.Web.WebView2.%WV2_VER% (
