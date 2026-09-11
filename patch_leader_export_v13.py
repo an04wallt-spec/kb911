@@ -9,16 +9,15 @@ if idx<0: raise SystemExit('script end not found')
 code=r'''
 
 // KB911_V13_LEADER_EXPORT_REPAIR
-// Existing leader: make all geometry points directly editable and add an
-// independent text-position handle. This intentionally overrides the earlier
-// leader runtime without touching dimensions/images/text interaction code.
+// Leader editing uses its own handle class/state so it cannot conflict with the
+// older leader runtime. Handles are redrawn only after pointer-up; this avoids
+// removing the active SVG handle while it is being dragged.
 function kbLeaderTextPoint(g){
  const q=leaderPts(g),fs=+g.dataset.fontSize||4;
  const def={x:(q.p2.x+q.p3.x)/2,y:q.p2.y-fs*.85};
  return {x:Number.isFinite(+g.dataset.textX)?+g.dataset.textX:def.x,
          y:Number.isFinite(+g.dataset.textY)?+g.dataset.textY:def.y};
 }
-const kbRenderLeaderV12=renderLeader;
 renderLeader=function(g){
  while(g.firstChild)g.removeChild(g.firstChild);
  const {p1,p2,p3}=leaderPts(g),c=g.dataset.lineColor||dimDefaults.lineColor||'#111111',lw=+(g.dataset.lineWidth||dimDefaults.lineWidth||.4),as=+(g.dataset.arrowSize||dimDefaults.arrowSize||5),aa=+(g.dataset.arrowAngle||dimDefaults.arrowAngle||10),sty=g.dataset.arrow||dimDefaults.arrow||'slim';
@@ -33,38 +32,55 @@ renderLeader=function(g){
 drawLeaderHandles=function(g){
  if(!g||g.dataset.type!=='leader')return;
  const {p1,p2,p3}=leaderPts(g),tp=kbLeaderTextPoint(g);
- [[p1,'p1'],[p2,'p2'],[p3,'p3']].forEach(([p,k])=>paper.appendChild(el('circle',{cx:p.x,cy:p.y,r:1.05,class:'handle selection-ui leader-handle','data-owner':g.dataset.id,'data-leader-handle':k,style:'cursor:crosshair'})));
- paper.appendChild(el('rect',{x:tp.x-1.25,y:tp.y-1.25,width:2.5,height:2.5,rx:.45,ry:.45,class:'handle selection-ui leader-handle','data-owner':g.dataset.id,'data-leader-handle':'text',style:'cursor:move'}));
+ [[p1,'p1'],[p2,'p2'],[p3,'p3']].forEach(([p,k])=>paper.appendChild(el('circle',{cx:p.x,cy:p.y,r:1.05,class:'handle selection-ui kb-leader-edit-handle','data-owner':g.dataset.id,'data-kb-leader-handle':k,style:'cursor:crosshair'})));
+ paper.appendChild(el('rect',{x:tp.x-1.35,y:tp.y-1.35,width:2.7,height:2.7,rx:.45,ry:.45,class:'handle selection-ui kb-leader-edit-handle','data-owner':g.dataset.id,'data-kb-leader-handle':'text',style:'cursor:move'}));
 };
-// Capture before older listeners. Handle drag is independent from whole-leader move.
+let kbLeaderEdit=null,kbLeaderPopupDrag=null;
 paper.addEventListener('pointerdown',e=>{
- if(!e.target.classList?.contains('leader-handle'))return;
- const g=findOwner(e.target.dataset.owner,'leader');if(!g)return;
- const p=pt(e),kind=e.target.dataset.leaderHandle;
+ const h=e.target.closest?.('.kb-leader-edit-handle');if(!h)return;
+ const g=findOwner(h.dataset.owner,'leader');if(!g)return;
+ const p=pt(e),kind=h.dataset.kbLeaderHandle;
  selected=g;lastEditable=g;
- leaderDrag={obj:g,kind,start:p,p1:parsePt(g.dataset.p1),p2:parsePt(g.dataset.p2),shelf:+g.dataset.shelf||40,text:kbLeaderTextPoint(g)};
+ kbLeaderEdit={obj:g,kind,start:p,p1:parsePt(g.dataset.p1),p2:parsePt(g.dataset.p2),shelf:+g.dataset.shelf||40,text:kbLeaderTextPoint(g)};
  e.preventDefault();e.stopImmediatePropagation();
 },true);
-paper.addEventListener('pointermove',e=>{
- if(!leaderDrag||!['p1','p2','p3','text'].includes(leaderDrag.kind))return;
- const p=pt(e),d=leaderDrag,g=d.obj;
+window.addEventListener('pointermove',e=>{
+ if(!kbLeaderEdit)return;
+ const p=pt(e),d=kbLeaderEdit,g=d.obj;
  if(d.kind==='p1')g.dataset.p1=`${p.x},${p.y}`;
  else if(d.kind==='p2'){
-   const old=parsePt(g.dataset.p2),dx=p.x-old.x,dy=p.y-old.y;
+   const dx=p.x-d.p2.x,dy=p.y-d.p2.y;
    g.dataset.p2=`${p.x},${p.y}`;
-   // Keep the horizontal shelf length/side, and move a custom text position
-   // together with the elbow so editing direction feels natural.
-   if(Number.isFinite(+g.dataset.textX)){g.dataset.textX=String(+g.dataset.textX+dx);g.dataset.textY=String(+g.dataset.textY+dy)}
+   if(Number.isFinite(+g.dataset.textX)){g.dataset.textX=String(d.text.x+dx);g.dataset.textY=String(d.text.y+dy)}
  }
  else if(d.kind==='p3'){
    const p2=parsePt(g.dataset.p2);g.dataset.dir=p.x>=p2.x?'1':'-1';g.dataset.shelf=String(Math.max(8,Math.abs(p.x-p2.x)));
  }
- else {g.dataset.textX=String(p.x);g.dataset.textY=String(p.y)}
- renderLeader(g);drawSelection();e.preventDefault();e.stopImmediatePropagation();
+ else if(d.kind==='text'){g.dataset.textX=String(p.x);g.dataset.textY=String(p.y)}
+ renderLeader(g);e.preventDefault();e.stopPropagation();
+},true);
+window.addEventListener('pointerup',e=>{
+ if(!kbLeaderEdit)return;
+ kbLeaderEdit=null;drawSelection();e.preventDefault();e.stopPropagation();
 },true);
 
+// Make the leader properties window draggable just like dimension/text windows.
+$('leaderPopup').addEventListener('pointerdown',e=>e.stopPropagation());
+$('leaderPopupHeader').addEventListener('pointerdown',e=>{
+ if(e.target.id==='leaderPopupClose')return;
+ const q=$('leaderPopup'),r=q.getBoundingClientRect();
+ kbLeaderPopupDrag={dx:e.clientX-r.left,dy:e.clientY-r.top};
+ e.preventDefault();e.stopPropagation();
+});
+window.addEventListener('pointermove',e=>{
+ if(!kbLeaderPopupDrag)return;
+ const q=$('leaderPopup');
+ q.style.left=Math.max(0,Math.min(innerWidth-q.offsetWidth,e.clientX-kbLeaderPopupDrag.dx))+'px';
+ q.style.top=Math.max(0,Math.min(innerHeight-q.offsetHeight,e.clientY-kbLeaderPopupDrag.dy))+'px';
+},true);
+window.addEventListener('pointerup',()=>{kbLeaderPopupDrag=null},true);
+
 // Export from an exact SVG snapshot instead of manually reconstructing objects.
-// This makes the active second/third/etc sheet behave identically to sheet 1.
 async function kbSvgSnapshotImage(){
  document.getElementById('liveTextEditor')?.blur();
  const clone=paper.cloneNode(true);clone.querySelectorAll('.selection-ui').forEach(n=>n.remove());
@@ -91,7 +107,7 @@ async function kbRenderPageTilesV13(dpi,pageNo,pageCount){
 kbRenderPageTiles=kbRenderPageTilesV13;
 '''
 s=s[:idx]+code+s[idx:]
-for token in ['KB911_V13_LEADER_EXPORT_REPAIR','data-leader-handle\':\'text','kbRenderCurrentSheetCanvasV13','kbRenderPageTilesV13']:
+for token in ['KB911_V13_LEADER_EXPORT_REPAIR','kb-leader-edit-handle','kbLeaderPopupDrag','kbRenderCurrentSheetCanvasV13','kbRenderPageTilesV13']:
     if token not in s: raise SystemExit('v13 token missing '+token)
 p.write_text(s,encoding='utf-8',newline='')
-print('v13 leader geometry and sheet export repair applied')
+print('v13 leader editing/export repair applied safely')
