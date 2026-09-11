@@ -1,5 +1,4 @@
-#define UNICODE
-#define _UNICODE
+#define NOMINMAX
 #include <windows.h>
 #include <shlobj.h>
 #include <shlwapi.h>
@@ -58,7 +57,7 @@ static std::wstring ExtractEmbeddedHtml(HINSTANCE hInst) {
 }
 
 static std::wstring FileUrl(const std::wstring& path) {
-    DWORD len = INTERNET_MAX_URL_LENGTH;
+    DWORD len = 4096;
     std::wstring url(len, L'\0');
     if (UrlCreateFromPathW(path.c_str(), url.data(), &len, 0) != S_OK) return L"";
     url.resize(len);
@@ -172,7 +171,6 @@ static void InitWebView(HINSTANCE hInst) {
                                 settings->put_AreDefaultContextMenusEnabled(TRUE);
                                 settings->put_AreDevToolsEnabled(FALSE);
                                 settings->put_IsStatusBarEnabled(FALSE);
-                                settings->put_AreBrowserAcceleratorKeysEnabled(FALSE);
                             }
 
                             EventRegistrationToken token{};
