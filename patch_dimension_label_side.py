@@ -70,5 +70,28 @@ window.addEventListener('pointercancel',kbFinishDimensionLabelDrag,true);
 '''
 replace_once(anchor, code + anchor)
 
+# The upper, larger circles can now change their own projection length.
+# A gesture along the dimension line still moves its endpoint as before.
+replace_once(
+    "down=+g.dataset.tailSize||7,up=3;[[p1,'start'],[p2,'end']].forEach(([p,k])=>{const upper=",
+    "down=+g.dataset.tailSize||7;[[p1,'start'],[p2,'end']].forEach(([p,k])=>{const up=+(g.dataset[k==='start'?'upperTailP1':'upperTailP2']??3);const upper="
+)
+replace_once(
+    "function drawAsymTail(g,p,nx,ny,down,c,lw){const a={x:p.x-nx*3,y:p.y-ny*3}",
+    "function drawAsymTail(g,p,nx,ny,down,c,lw,up=3){const a={x:p.x-nx*up,y:p.y-ny*up}"
+)
+replace_once(
+    "drawAsymTail(g,p1,dnx,dny,down,c,lw);drawAsymTail(g,p2,dnx,dny,down,c,lw);",
+    "drawAsymTail(g,p1,dnx,dny,down,c,lw,+(g.dataset.upperTailP1??3));drawAsymTail(g,p2,dnx,dny,down,c,lw,+(g.dataset.upperTailP2??3));"
+)
+replace_once(
+    "endpointDrag={obj:g,end,offX:center.x-p.x,offY:center.y-p.y};e.preventDefault();return}",
+    "endpointDrag={obj:g,end,offX:center.x-p.x,offY:center.y-p.y,start:p,mode:null};e.preventDefault();return}"
+)
+replace_once(
+    "if(endpointDrag){endpointDrag.obj.dataset[endpointDrag.end]=`${p.x+endpointDrag.offX},${p.y+endpointDrag.offY}`;renderDim(endpointDrag.obj);drawSelection();return}",
+    "if(endpointDrag){const d=endpointDrag,g=d.obj,base=parsePt(g.dataset[d.end]);if(!d.mode){const {nx,ny}=dimDownNormal(g),dx=p.x-d.start.x,dy=p.y-d.start.y;if(Math.hypot(dx,dy)<.3)return;d.mode=Math.abs(dx*nx+dy*ny)>=Math.abs(dx*ny-dy*nx)?'upper':'endpoint'}if(d.mode==='upper'){const {nx,ny}=dimDownNormal(g);g.dataset[d.end==='p1'?'upperTailP1':'upperTailP2']=Math.max(.5,Math.min(300,-((p.x-base.x)*nx+(p.y-base.y)*ny))).toFixed(2)}else g.dataset[d.end]=`${p.x+d.offX},${p.y+d.offY}`;renderDim(g);drawSelection();return}"
+)
+
 p.write_text(s, encoding='utf-8', newline='')
 print('Dimension digits can be dragged across the line to change side')
