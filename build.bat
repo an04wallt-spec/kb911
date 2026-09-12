@@ -74,7 +74,7 @@ if not exist packages\Microsoft.Web.WebView2.%WV2_VER% (
 set WV2=packages\Microsoft.Web.WebView2.%WV2_VER%\build\native
 powershell -NoProfile -ExecutionPolicy Bypass -File make_icon_v32.ps1
 if errorlevel 1 exit /b 1
-python -c "import struct,pathlib; files=[r'build\\KB911.ico',r'build\\KB911_project.ico']; [(lambda b,fn: ( (_ for _ in ()).throw(AssertionError(fn)) if not (b[:4]==b'\\x00\\x00\\x01\\x00' and struct.unpack_from('<H',b,4)[0]==9) else None))(pathlib.Path(fn).read_bytes(),fn) for fn in files]"
+python make_ico_v32.py
 if errorlevel 1 exit /b 1
 rc /nologo /fo build\resource.res src\resource.rc
 if errorlevel 1 exit /b 1
