@@ -39,9 +39,9 @@ line_popup=r'''
  <div style="padding:9px">
   <div class="row">
    <div style="flex:1"><div class="label">Толщина, мм</div><input id="simpleLineWidth" type="number" min="0.1" max="5" step="0.05" value="0.40" style="width:100%"></div>
-   <div style="flex:1"><div class="label">Тип линии</div><select id="simpleLineStyle" style="width:100%"><option value="solid">Сплошная</option><option value="dash">Пунктирная</option><option value="dashdot">Пунктир с точкой</option></select></div>
+   <div style="flex:1"><div class="label">Тип линии</div><select id="simpleLineStyle" style="width:100%"><option value="solid">Сплошная</option><option value="dash" selected>Пунктирная</option><option value="dashdot">Пунктир с точкой</option></select></div>
   </div>
-  <div class="label">Цвет линии</div><div class="color-row"><input id="simpleLineColor" type="color" value="#111111"><span>Линия</span></div>
+  <div class="label">Цвет линии</div><div class="color-row"><input id="simpleLineColor" type="color" value="#ff0000"><span>Линия</span></div>
   <div class="tp-actions"><button id="lineOk" class="primary">OK</button></div>
  </div>
 </div>
@@ -96,7 +96,7 @@ if pos<0: raise SystemExit('v22: native project anchor not found')
 code=r'''
 // KB911_V22_LINE_TOOL_AND_REDO
 let simpleLineDraft=null,simpleLinePreview=null,simpleLineDrag=null,simpleLinePopupDrag=null;
-let simpleLineDefaults={lineWidth:'0.40',lineColor:'#111111',lineStyle:'solid'};
+let simpleLineDefaults={lineWidth:'0.40',lineColor:'#ff0000',lineStyle:'dash'};
 function simpleLinePts(g){
  const p1=parsePt(g.dataset.p1||'0,0'),p2=parsePt(g.dataset.p2||'0,0'),dir=(+g.dataset.dir||1),shelf=Math.max(0,+g.dataset.shelf||40);
  return {p1,p2,p3:{x:p2.x+dir*shelf,y:p2.y},dir,shelf};
