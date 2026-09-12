@@ -1,7 +1,7 @@
-Add-Type -AssemblyName System.Drawing
+# KB911 icon source: exact approved 256x256 PNG, stored as split Base64 text.
+# Important: do NOT redraw/resample it with System.Drawing. That path produced
+# collapsed horizontal-bar icon frames on Windows. ImageMagick is used directly.
 
-# KB911 v32: render every Windows icon size explicitly from the verified logo source.
-# ICO container assembly/validation is handled separately by make_ico_v32.py.
 $parts = 1..6 | ForEach-Object {
   (Get-Content -Raw ("assets\icon_chunks\part$_.txt")).Trim()
 }
@@ -18,45 +18,41 @@ $expectedHash = '18ccca99861d621cc0c6018489299b25019411d5a1aa1ca18f2a2d3ef27d80d
 if ($actualHash -ne $expectedHash) {
   throw "KB911 approved icon source SHA mismatch: $actualHash"
 }
-Write-Host "KB911 approved icon source verified: $actualHash"
 
-$sourceStream = New-Object IO.MemoryStream(,$bytes)
-$source = [System.Drawing.Bitmap]::FromStream($sourceStream)
+if (-not (Test-Path 'build')) { New-Item -ItemType Directory -Path 'build' | Out-Null }
+$source = 'build\KB911_icon_source.png'
+[IO.File]::WriteAllBytes($source, $bytes)
+
+$dim = (& magick identify -format '%wx%h' $source 2>$null)
+if ($LASTEXITCODE -ne 0 -or $dim -ne '256x256') {
+  throw "KB911 icon source validation failed: $dim"
+}
 
 $sizes = @(256,128,64,48,40,32,24,20,16)
-
-$cm = New-Object System.Drawing.Imaging.ColorMatrix
-$cm.Matrix00 = 0.299; $cm.Matrix01 = 0.299; $cm.Matrix02 = 0.299
-$cm.Matrix10 = 0.587; $cm.Matrix11 = 0.587; $cm.Matrix12 = 0.587
-$cm.Matrix20 = 0.114; $cm.Matrix21 = 0.114; $cm.Matrix22 = 0.114
-$cm.Matrix33 = 1.0; $cm.Matrix44 = 1.0
-$grayAttributes = New-Object System.Drawing.Imaging.ImageAttributes
-$grayAttributes.SetColorMatrix($cm)
-
 foreach ($size in $sizes) {
-  foreach ($gray in @($false,$true)) {
-    $bmp = New-Object System.Drawing.Bitmap($size,$size,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
-    $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.Clear([System.Drawing.Color]::Transparent)
-    $g.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
-    $g.CompositingQuality = [System.Drawing.Drawing2D.CompositingQuality]::HighQuality
-    $g.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
-    $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::HighQuality
-    $g.PixelOffsetMode = [System.Drawing.Drawing2D.PixelOffsetMode]::HighQuality
-    $dst = New-Object System.Drawing.Rectangle(0,0,$size,$size)
+  $appOut = "build\kb911_app_$size.png"
+  $projectOut = "build\kb911_project_$size.png"
 
-    if ($gray) {
-      $g.DrawImage($source,$dst,0,0,$source.Width,$source.Height,[System.Drawing.GraphicsUnit]::Pixel,$grayAttributes)
-      $name = "build\kb911_project_$size.png"
-    } else {
-      $g.DrawImage($source,$dst,0,0,$source.Width,$source.Height,[System.Drawing.GraphicsUnit]::Pixel)
-      $name = "build\kb911_app_$size.png"
-    }
+  # Direct high-quality resize from the verified source. No intermediate raster API.
+  & magick $source -filter Lanczos -resize "${size}x${size}!" -strip $appOut
+  if ($LASTEXITCODE -ne 0) { throw "Failed to render $appOut" }
 
-    $bmp.Save($name,[System.Drawing.Imaging.ImageFormat]::Png)
-    $g.Dispose(); $bmp.Dispose()
+  & magick $source -colorspace Gray -filter Lanczos -resize "${size}x${size}!" -strip $projectOut
+  if ($LASTEXITCODE -ne 0) { throw "Failed to render $projectOut" }
+
+  $appDim = (& magick identify -format '%wx%h' $appOut 2>$null)
+  $projectDim = (& magick identify -format '%wx%h' $projectOut 2>$null)
+  if ($appDim -ne "${size}x${size}" -or $projectDim -ne "${size}x${size}") {
+    throw "Bad rendered icon frame size at $size: app=$appDim project=$projectDim"
   }
 }
 
-$grayAttributes.Dispose(); $source.Dispose(); $sourceStream.Dispose()
-Write-Host 'KB911 v32 rendered 18 explicit PNG icon frames.'
+# Pixel-exact guard for the master application frame. This specifically prevents
+# the previous 'black horizontal line on white' regression from passing CI.
+& magick compare -metric AE $source 'build\kb911_app_256.png' null: 2>$null
+if ($LASTEXITCODE -ne 0) {
+  throw 'KB911 256px application icon no longer matches the approved source.'
+}
+
+Write-Host "KB911 icon source verified: $actualHash"
+Write-Host 'KB911 icon frames rendered directly by ImageMagick: 9 app + 9 grayscale project frames.'
