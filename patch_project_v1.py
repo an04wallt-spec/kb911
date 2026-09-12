@@ -53,7 +53,7 @@ $('imageContextMenu').addEventListener('click',e=>{
 
 // ---------- Native KB911 project format ----------
 let kbProject={name:'Проект KB911',sheets:[],current:0};
-const kbFrameDefaults={enabled:false,company:true,logoEnabled:false,name:'',logo:null,stroke:.3,inset:5};
+const kbFrameDefaults={enabled:false,company:true,logoEnabled:false,name:'',logo:null,stroke:.3,inset:5,radius:2};
 function kbClone(v){return JSON.parse(JSON.stringify(v))}
 function kbSheetName(i){return 'Лист '+(i+1)}
 function kbSnapshotSheet(name){

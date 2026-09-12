@@ -28,6 +28,28 @@ if ($LASTEXITCODE -ne 0 -or $dim -ne '256x256') {
   throw "KB911 icon source validation failed: $dim"
 }
 
+# Keep the approved icon's white lettering, cyan arrow, outline, and exterior.
+# Recolor only the dark fill inside its rounded outline for project files.
+$darkMask = 'build\kb911_project_dark.png'
+$shapeMask = 'build\kb911_project_shape.png'
+$fillMask = 'build\kb911_project_mask.png'
+$grayLayer = 'build\kb911_project_gray.png'
+$projectSource = 'build\kb911_project_source.png'
+& magick $source -colorspace Gray -threshold '27%' -negate $darkMask
+if ($LASTEXITCODE -ne 0) { throw 'Failed to isolate the project icon dark fill' }
+& magick -size '256x256' 'xc:black' -fill white -draw 'roundrectangle 17,17 238,238 34,34' $shapeMask
+if ($LASTEXITCODE -ne 0) { throw 'Failed to create the project icon interior mask' }
+& magick $darkMask $shapeMask -compose Multiply -composite $fillMask
+if ($LASTEXITCODE -ne 0) { throw 'Failed to mask the project icon interior' }
+& magick -size '256x256' 'xc:#777777' $fillMask -alpha off -compose CopyOpacity -composite $grayLayer
+if ($LASTEXITCODE -ne 0) { throw 'Failed to color the project icon interior' }
+& magick $source $grayLayer -compose Over -composite $projectSource
+if ($LASTEXITCODE -ne 0) { throw 'Failed to compose the project icon' }
+$fillColor = (& magick $projectSource -format '%[pixel:p{128,65}]' info:)
+if ($LASTEXITCODE -ne 0 -or $fillColor -ne 'srgb(119,119,119)') {
+  throw "KB911 project icon interior is not gray: $fillColor"
+}
+
 $sizes = @(256,128,64,48,40,32,24,20,16)
 foreach ($size in $sizes) {
   $appOut = "build\kb911_app_$size.png"
@@ -37,7 +59,7 @@ foreach ($size in $sizes) {
   & magick $source -filter Lanczos -resize "${size}x${size}!" -strip $appOut
   if ($LASTEXITCODE -ne 0) { throw "Failed to render $appOut" }
 
-  & magick $source -colorspace Gray -filter Lanczos -resize "${size}x${size}!" -strip $projectOut
+  & magick $projectSource -filter Lanczos -resize "${size}x${size}!" -strip $projectOut
   if ($LASTEXITCODE -ne 0) { throw "Failed to render $projectOut" }
 
   $appDim = (& magick identify -format '%wx%h' $appOut 2>$null)
@@ -55,4 +77,4 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Host "KB911 icon source verified: $actualHash"
-Write-Host 'KB911 icon frames rendered directly by ImageMagick: 9 app + 9 grayscale project frames.'
+Write-Host 'KB911 icon frames rendered directly by ImageMagick: 9 app + 9 gray-interior project frames.'

@@ -24,6 +24,10 @@ s=s.replace(old,old+'<button id="redoImage" class="mini" title="Вернуть �
 # Slightly smaller status font so the longer tool hints fit the fixed header.
 s=s.replace('#status{height:34px;flex:1;min-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#111;font-size:14px;',
             '#status{height:34px;flex:1;min-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#111;font-size:12px;',1)
+s=s.replace('#status{height:34px;flex:1;min-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#111;font-size:12px;',
+            '#status{height:34px;flex:1;min-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff;font-size:12px;',1)
+s=s.replace('background:#f4f4f6;border:1px solid #c9c9cf;border-radius:6px}',
+            'background:#2563eb;border:1px solid #2563eb;border-radius:6px}',1)
 
 # --- Compact line settings popup. ---
 script_anchor='<script>\n(()=>{'
