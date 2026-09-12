@@ -43,7 +43,7 @@ foreach ($size in $sizes) {
   $appDim = (& magick identify -format '%wx%h' $appOut 2>$null)
   $projectDim = (& magick identify -format '%wx%h' $projectOut 2>$null)
   if ($appDim -ne "${size}x${size}" -or $projectDim -ne "${size}x${size}") {
-    throw "Bad rendered icon frame size at $size: app=$appDim project=$projectDim"
+    throw "Bad rendered icon frame size at ${size}: app=$appDim project=$projectDim"
   }
 }
 
