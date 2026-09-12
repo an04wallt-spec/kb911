@@ -1,18 +1,28 @@
 Add-Type -AssemblyName System.Drawing
 
-# Exact approved KB911 artwork supplied by the user, stored as split Base64 text
-# only to keep repository/API writes small and lossless.
+# Exact approved KB911 artwork supplied by the user, stored as split Base64 text.
+# Re-encode it through System.Drawing before ICO creation. The previous build
+# wrapped the original compressed PNG stream directly; on some systems that
+# produced decoder artefacts (white specks/short strokes) in Explorer.
 $parts = 1..5 | ForEach-Object {
   (Get-Content -Raw ("assets\icon_chunks\part$_.txt")).Trim()
 }
 $logoBase64 = ($parts -join '') -replace '\s',''
 $bytes = [Convert]::FromBase64String($logoBase64)
-[IO.File]::WriteAllBytes('build\KB911_icon.png',$bytes)
+
+$ms = New-Object IO.MemoryStream(,$bytes)
+$src = [System.Drawing.Bitmap]::FromStream($ms)
+
+# Clean 32-bit ARGB raster for the application icon.
+$app = New-Object System.Drawing.Bitmap($src.Width,$src.Height,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
+$ag = [System.Drawing.Graphics]::FromImage($app)
+$ag.CompositingMode = [System.Drawing.Drawing2D.CompositingMode]::SourceCopy
+$ag.DrawImage($src,0,0,$src.Width,$src.Height)
+$app.Save('build\KB911_icon.png',[System.Drawing.Imaging.ImageFormat]::Png)
+$ag.Dispose()
 
 # .kb911 project files use the same approved artwork in grayscale so they
 # remain visually distinct from the application icon.
-$ms = New-Object IO.MemoryStream(,$bytes)
-$src = [System.Drawing.Bitmap]::FromStream($ms)
 $dst = New-Object System.Drawing.Bitmap($src.Width,$src.Height,[System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
 $g = [System.Drawing.Graphics]::FromImage($dst)
 $cm = New-Object System.Drawing.Imaging.ColorMatrix
@@ -25,4 +35,4 @@ $ia.SetColorMatrix($cm)
 $rect = New-Object System.Drawing.Rectangle(0,0,$src.Width,$src.Height)
 $g.DrawImage($src,$rect,0,0,$src.Width,$src.Height,[System.Drawing.GraphicsUnit]::Pixel,$ia)
 $dst.Save('build\KB911_project_icon.png',[System.Drawing.Imaging.ImageFormat]::Png)
-$ia.Dispose(); $g.Dispose(); $dst.Dispose(); $src.Dispose(); $ms.Dispose()
+$ia.Dispose(); $g.Dispose(); $dst.Dispose(); $app.Dispose(); $src.Dispose(); $ms.Dispose()
