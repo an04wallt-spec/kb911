@@ -50,6 +50,14 @@ if ($LASTEXITCODE -ne 0 -or $fillColor -ne 'srgb(119,119,119)') {
   throw "KB911 project icon interior is not gray: $fillColor"
 }
 
+# Remove the solid black square outside the white rounded outline. Retain the
+# entire outline and the existing gray interior, letters, and blue arrow.
+$outerMask = 'build\kb911_project_outer_mask.png'
+& magick -size '256x256' 'xc:black' -fill white -draw 'roundrectangle 15,16 240,241 38,38' $outerMask
+if ($LASTEXITCODE -ne 0) { throw 'Failed to create the project icon transparency mask' }
+& magick $projectSource $outerMask -alpha off -compose CopyOpacity -composite $projectSource
+if ($LASTEXITCODE -ne 0) { throw 'Failed to make the project icon exterior transparent' }
+
 $sizes = @(256,128,64,48,40,32,24,20,16)
 foreach ($size in $sizes) {
   $appOut = "build\kb911_app_$size.png"

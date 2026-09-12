@@ -1,4 +1,5 @@
 from pathlib import Path
+import base64
 import sys
 p=Path(sys.argv[1] if len(sys.argv)>1 else 'app/KB911.html')
 s=p.read_text(encoding='utf-8')
@@ -15,8 +16,11 @@ rep('<select id="paperSize"><option selected>A4</option><option>A3</option>','<s
 
 # Donation is its own module below the frame description; handshake instead of heart.
 old='<div id="donateWrap"><button id="donateBtn">♥ Попрошайка ▾</button><div id="donateMenu"><button type="button">Варианты поддержки добавим позже</button></div></div>\n    <div class="hint">Контур 0,3 мм, отступ от края листа 5 мм. Название и логотип можно включать независимо.</div>'
-new='<div class="hint">Контур 0,3 мм, отступ от края листа 5 мм. Название и логотип можно включать независимо.</div>\n  </div>\n  <div class="group" id="donateModule"><div id="donateWrap"><button id="donateBtn">🤝 Попрошайка ▾</button><div id="donateMenu"><button type="button">Варианты поддержки добавим позже</button></div></div>'
+new='<div class="hint">Контур 0,3 мм, отступ от края листа 5 мм. Название и логотип можно включать независимо.</div>\n  </div>\n  <div class="group" id="donateModule"><div id="donateWrap"><button id="donateBtn" type="button" aria-expanded="false"><img src="__KB911_DONATE_ICON__" alt="">Попрошайка ▾</button><div id="donateMenu">Если Вам понравилось что я сделал, если Вам действительно помогает в работе эта бесплатная утилита, буду благодарен любой сумме в качестве безвозмездной помощи ))) советы и пожелания по улучшению готов принять по электронной почте (можно скопировать нажав на название программы), СПАСИБО за Ваше участие!</div><div id="donateQrArea"><img id="donateQrImage" src="__KB911_DONATE_QR__" alt="QR-код для перевода через Т-Банк или Сбербанк"></div></div>'
 rep(old,new)
+for placeholder, path in [('__KB911_DONATE_ICON__',Path('assets/donate_icon.png')),('__KB911_DONATE_QR__',Path('assets/donate_qr.png'))]:
+    if s.count(placeholder)!=1: raise SystemExit('donation image placeholder missing: '+placeholder)
+    s=s.replace(placeholder,'data:image/png;base64,'+base64.b64encode(path.read_bytes()).decode('ascii'),1)
 # close donate module before aside closes
 rep('  </div>\n</aside>\n</main>','  </div>\n</aside>\n</main>',1)
 

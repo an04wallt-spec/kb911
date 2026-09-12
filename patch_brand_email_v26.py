@@ -8,7 +8,7 @@ if marker in s:
     raise SystemExit(0)
 
 old='<div class="brand">KB911</div>'
-new='<div class="brand" id="kbBrand" title="Правый клик — скопировать e-mail">KB911</div>'
+new='<div class="brand" id="kbBrand" title="Нажмите — скопировать e-mail">KB911</div>'
 if old not in s: raise SystemExit('v26: brand not found')
 s=s.replace(old,new,1)
 
@@ -32,6 +32,7 @@ function kbShowBrandMenuV26(x,y){const m=$('brandContextMenu');if(!m)return;m.st
 function kbCopyEmailFallbackV26(text){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';ta.style.left='-10000px';ta.style.top='-10000px';document.body.appendChild(ta);ta.focus();ta.select();let ok=false;try{ok=document.execCommand('copy')}catch{}ta.remove();return ok}
 async function kbCopySupportEmailV26(){let ok=false;try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(KB911_SUPPORT_EMAIL);ok=true}}catch{}if(!ok)ok=kbCopyEmailFallbackV26(KB911_SUPPORT_EMAIL);kbHideBrandMenuV26();setStatus(ok?'Адрес электронной почты скопирован: '+KB911_SUPPORT_EMAIL:'Не удалось скопировать адрес электронной почты')}
 $('kbBrand').addEventListener('contextmenu',e=>{e.preventDefault();e.stopPropagation();kbShowBrandMenuV26(e.clientX,e.clientY)},true);
+$('kbBrand').addEventListener('click',e=>{e.preventDefault();kbCopySupportEmailV26()});
 $('copySupportEmail').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();kbCopySupportEmailV26()});
 window.addEventListener('pointerdown',e=>{if(!e.target.closest?.('#brandContextMenu')&&!e.target.closest?.('#kbBrand'))kbHideBrandMenuV26()},true);
 window.addEventListener('blur',kbHideBrandMenuV26);

@@ -20,7 +20,7 @@ def must_sub(pattern,repl,count=1):
 must_replace(
 ".dim-hover-line{stroke:#2563eb;stroke-width:.28;fill:none;opacity:.8;pointer-events:none;vector-effect:non-scaling-stroke}\n",
 ".dim-hover-line{stroke:#2563eb;stroke-width:.28;fill:none;opacity:.8;pointer-events:none;vector-effect:non-scaling-stroke}.dim-rotate-handle{fill:#fff;stroke:#2563eb;stroke-width:.30;cursor:grab;vector-effect:non-scaling-stroke}.dim-rotate-stem{stroke:#2563eb;stroke-width:.28;vector-effect:non-scaling-stroke}\n")
-must_replace("@media print{", "#donateWrap{position:relative;margin-top:10px}#donateBtn{width:100%;font-weight:600}#donateMenu{display:none;position:absolute;left:0;right:0;top:38px;z-index:75;background:#fff;border:1px solid #c8c8ce;border-radius:7px;box-shadow:0 10px 28px rgba(0,0,0,.18);padding:5px}#donateMenu.open{display:block}#donateMenu button{width:100%;height:32px;text-align:left;border:0;background:transparent;color:#606772;cursor:default}#donateMenu button:hover{background:#f4f4f6}\n@media print{")
+must_replace("@media print{", "aside.right button{height:29px}#donateWrap{position:relative;margin-top:10px}#donateBtn{width:100%;font-weight:600;display:flex;align-items:center;justify-content:center;gap:5px}#donateBtn img{width:24px;height:24px;object-fit:contain}#donateMenu{display:none;position:fixed;z-index:75;background:#fff;border:1px solid #c8c8ce;border-radius:7px;box-shadow:0 10px 28px rgba(0,0,0,.18);padding:10px;font-size:12px;line-height:1.35;white-space:normal}#donateMenu.open{display:block}#donateQrArea{display:none;text-align:center;margin-top:8px}#donateMenu.open~#donateQrArea{display:block}#donateQrImage{display:block;width:min(100%,210px);height:auto;aspect-ratio:1;margin:auto;image-rendering:auto}\n@media print{")
 
 # Donation placeholder under the logo controls.
 must_replace(
@@ -66,7 +66,8 @@ s=s.replace('rotateDrag=null;drag=null','rotateDrag=null;dimRotateDrag=null;drag
 s=s.replace('rotateDrag=null;textResize=null','rotateDrag=null;dimRotateDrag=null;textResize=null')
 
 # Donation dropdown behavior.
-must_replace("$('frameEnabled').onchange=", "$('donateBtn').onclick=e=>{e.stopPropagation();$('donateMenu').classList.toggle('open')};$('donateMenu').addEventListener('click',e=>e.stopPropagation());window.addEventListener('click',e=>{if(!e.target.closest('#donateWrap'))$('donateMenu').classList.remove('open')});\n$('frameEnabled').onchange=")
+must_replace("$('frameEnabled').onchange=", "function kbPlaceDonateMenu(){const btn=$('donateBtn'),menu=$('donateMenu');if(!menu.classList.contains('open'))return;const r=btn.getBoundingClientRect();menu.style.left=r.left+'px';menu.style.width=r.width+'px';menu.style.top=Math.max(6,r.top-menu.offsetHeight-6)+'px'}\nfunction kbCloseDonateMenu(){const m=$('donateMenu');m.classList.remove('open');$('donateBtn').setAttribute('aria-expanded','false')}\n$('donateBtn').onclick=e=>{e.stopPropagation();const m=$('donateMenu'),open=!m.classList.contains('open');m.classList.toggle('open',open);$('donateBtn').setAttribute('aria-expanded',String(open));if(open)kbPlaceDonateMenu()};$('donateMenu').addEventListener('click',e=>e.stopPropagation());window.addEventListener('click',e=>{if(!e.target.closest('#donateWrap'))kbCloseDonateMenu()});window.addEventListener('scroll',kbPlaceDonateMenu,true);window.addEventListener('resize',kbPlaceDonateMenu);\n$('frameEnabled').onchange=")
+
 
 p.write_text(s,encoding='utf-8',newline='')
 print('KB911 UI patch applied:',len(s.encode('utf-8')),'bytes')
