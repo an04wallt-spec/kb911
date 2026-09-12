@@ -79,7 +79,7 @@ function kbUpdateProjectUI(){
 }
 function kbClearSheetObjects(){
  clearSelection();activeImage=null;tool=null;closeDimPopup();closeTextPopup();try{closeLeaderPopup()}catch{}
- paper.querySelectorAll('[data-type="image"],[data-type="dimension"],[data-type="text"],[data-type="leader"],[data-type="frame"]').forEach(n=>n.remove());
+ paper.querySelectorAll('[data-type="image"],[data-type="dimension"],[data-type="text"],[data-type="leader"],[data-type="line"],[data-type="frame"]').forEach(n=>n.remove());
 }
 function kbRestoreDatasetGroup(type,data){
  let g;
