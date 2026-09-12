@@ -3,7 +3,7 @@ name: Build KB911 Windows
 on:
   workflow_dispatch:
   push:
-    branches: [ main, autosave-v30 ]
+    branches: [ main ]
 
 jobs:
   build:
@@ -30,5 +30,3 @@ jobs:
           name: KB911-Windows
           path: build/KB911.exe
           if-no-files-found: error
-
-# autosave-v30 CI trigger
