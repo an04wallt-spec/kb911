@@ -73,13 +73,25 @@ static void SendAutosaveRecoveryToWebV30() {
 '''
 replace_once('static void HandleWebMessage(ICoreWebView2WebMessageReceivedEventArgs* args) {', helpers + 'static void HandleWebMessage(ICoreWebView2WebMessageReceivedEventArgs* args) {')
 
-message_anchor = '''    std::wstring s(raw);\n    CoTaskMemFree(raw);\n    const std::wstring prefix = L"KB911_SIZE|";'''
-message_new = '''    std::wstring s(raw);\n    CoTaskMemFree(raw);\n\n    const std::wstring autosavePrefixV30 = L"KB911_AUTOSAVE_SAVE|";\n    if (s.rfind(autosavePrefixV30, 0) == 0) {\n        const std::wstring payload = s.substr(autosavePrefixV30.size());\n        const bool ok = !payload.empty() && WriteUtf8AtomicV30(AutosavePathV30(), payload);\n        if (g_webview) g_webview->PostWebMessageAsString(ok ? L"KB911_AUTOSAVE_SAVED" : L"KB911_AUTOSAVE_ERROR");\n        return;\n    }\n    if (s == L"KB911_AUTOSAVE_CLEAR") {\n        ClearAutosaveV30();\n        return;\n    }\n\n    const std::wstring prefix = L"KB911_SIZE|";'''
+message_anchor = '    const std::wstring prefix = L"KB911_SIZE|";'
+message_new = r'''    const std::wstring autosavePrefixV30 = L"KB911_AUTOSAVE_SAVE|";
+    if (s.rfind(autosavePrefixV30, 0) == 0) {
+        const std::wstring payload = s.substr(autosavePrefixV30.size());
+        const bool ok = !payload.empty() && WriteUtf8AtomicV30(AutosavePathV30(), payload);
+        if (g_webview) g_webview->PostWebMessageAsString(ok ? L"KB911_AUTOSAVE_SAVED" : L"KB911_AUTOSAVE_ERROR");
+        return;
+    }
+    if (s == L"KB911_AUTOSAVE_CLEAR") {
+        ClearAutosaveV30();
+        return;
+    }
+
+    const std::wstring prefix = L"KB911_SIZE|";'''
 replace_once(message_anchor, message_new)
 
 replace_once(
-    '                                        SendPendingProjectToWeb();\n                                        if (g_webview) g_webview->ExecuteScript',
-    '                                        SendPendingProjectToWeb();\n                                        SendAutosaveRecoveryToWebV30();\n                                        if (g_webview) g_webview->ExecuteScript'
+    '                                        SendPendingProjectToWeb();',
+    '                                        SendPendingProjectToWeb();\n                                        SendAutosaveRecoveryToWebV30();'
 )
 
 cmd = '        if (argc > 1 && argv[1] && EndsWithI(argv[1], L".kb911")) g_pendingProjectPath = argv[1];'
