@@ -1,12 +1,25 @@
 Add-Type -AssemblyName System.Drawing
 
-# KB911 v32: render every Windows icon size explicitly from the approved logo.
+# KB911 v32: render every Windows icon size explicitly from the verified logo source.
 # ICO container assembly/validation is handled separately by make_ico_v32.py.
-$parts = 1..5 | ForEach-Object {
+$parts = 1..6 | ForEach-Object {
   (Get-Content -Raw ("assets\icon_chunks\part$_.txt")).Trim()
 }
 $logoBase64 = ($parts -join '') -replace '\s',''
 $bytes = [Convert]::FromBase64String($logoBase64)
+
+$sha = [System.Security.Cryptography.SHA256]::Create()
+try {
+  $actualHash = ([BitConverter]::ToString($sha.ComputeHash($bytes))).Replace('-','').ToLowerInvariant()
+} finally {
+  $sha.Dispose()
+}
+$expectedHash = '18ccca99861d621cc0c6018489299b25019411d5a1aa1ca18f2a2d3ef27d80d2'
+if ($actualHash -ne $expectedHash) {
+  throw "KB911 approved icon source SHA mismatch: $actualHash"
+}
+Write-Host "KB911 approved icon source verified: $actualHash"
+
 $sourceStream = New-Object IO.MemoryStream(,$bytes)
 $source = [System.Drawing.Bitmap]::FromStream($sourceStream)
 
