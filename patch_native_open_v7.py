@@ -47,7 +47,7 @@ static void SetRegString(HKEY root, const std::wstring& keyPath, const wchar_t* 
 }
 
 static std::wstring ExtractProjectIconFile() {
-    // KB911_V29_PROJECT_ICON_FILE
+    // KB911_V31_PROJECT_ICON_FILE
     HINSTANCE hInst = GetModuleHandleW(nullptr);
     HRSRC hrsrc = FindResourceW(hInst, MAKEINTRESOURCEW(IDR_PROJECT_ICON_FILE), RT_RCDATA);
     if (!hrsrc) return L"";
@@ -62,9 +62,12 @@ static std::wstring ExtractProjectIconFile() {
     std::wstring root = std::wstring(local) + L"\\KB911";
     CoTaskMemFree(local);
     SHCreateDirectoryExW(nullptr, root.c_str(), nullptr);
-    std::wstring iconPath = root + L"\\KB911_project.ico";
 
-    HANDLE h = CreateFileW(iconPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    // Versioned file name is deliberate: Explorer can hold the old ICO open
+    // and cache it by path. A new path guarantees that the corrected icon is read.
+    std::wstring iconPath = root + L"\\KB911_project_v31.ico";
+
+    HANDLE h = CreateFileW(iconPath.c_str(), GENERIC_WRITE, FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (h == INVALID_HANDLE_VALUE) return L"";
     DWORD written = 0;
     BOOL ok = WriteFile(h, data, size, &written, nullptr);
@@ -73,9 +76,7 @@ static std::wstring ExtractProjectIconFile() {
 }
 
 static void RegisterProjectAssociation() {
-    // KB911_V29_PROJECT_ICON_ASSOC_FILE
-    // Explorer gets the project icon from a real .ico file extracted to
-    // LocalAppData. This avoids ambiguity of icon-resource indexes inside EXE.
+    // KB911_V31_PROJECT_ICON_ASSOC_FILE
     wchar_t exeBuf[32768]{};
     DWORD n = GetModuleFileNameW(nullptr, exeBuf, static_cast<DWORD>(_countof(exeBuf)));
     if (!n || n >= _countof(exeBuf)) return;
@@ -106,6 +107,9 @@ static void RegisterProjectAssociation() {
         L"Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\FileExts\\.kb911\\OpenWithProgids",
         L"KB911.Project", L"");
 
+    if (!projectIcon.empty()) {
+        SHChangeNotify(SHCNE_UPDATEITEM, SHCNF_PATHW | SHCNF_FLUSH, projectIcon.c_str(), nullptr);
+    }
     SHChangeNotify(SHCNE_ASSOCCHANGED, SHCNF_IDLIST | SHCNF_FLUSH, nullptr, nullptr);
 }
 
@@ -134,8 +138,8 @@ needle='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AW
 replacement='''    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);\n    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);\n    RegisterProjectAssociation();\n    int argc = 0;\n    LPWSTR* argv = CommandLineToArgvW(GetCommandLineW(), &argc);\n    if (argv) {\n        if (argc > 1 && argv[1] && EndsWithI(argv[1], L".kb911")) g_pendingProjectPath = argv[1];\n        LocalFree(argv);\n    }\n'''
 rep(needle,replacement)
 
-for token in ['KB911_V29_PROJECT_ICON_FILE','KB911_V29_PROJECT_ICON_ASSOC_FILE','IDR_PROJECT_ICON_FILE','KB911_project.ico','SystemFileAssociations\\\\.kb911\\\\DefaultIcon']:
-    if token not in s: raise SystemExit('patch_native_open_v7 v29 guard failed: '+token)
+for token in ['KB911_V31_PROJECT_ICON_FILE','KB911_V31_PROJECT_ICON_ASSOC_FILE','IDR_PROJECT_ICON_FILE','KB911_project_v31.ico','SystemFileAssociations\\\\.kb911\\\\DefaultIcon','SHCNE_UPDATEITEM']:
+    if token not in s: raise SystemExit('patch_native_open_v7 v31 guard failed: '+token)
 
 p.write_text(s,encoding='utf-8',newline='')
-print('Native .kb911 Explorer-open support applied; project icon extracted to LocalAppData and associated directly')
+print('Native .kb911 Explorer-open support applied; project icon uses a versioned physical ICO path')
