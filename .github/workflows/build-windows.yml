@@ -3,7 +3,7 @@ name: Build KB911 Windows
 on:
   workflow_dispatch:
   push:
-    branches: [ main, active-tool-outline-v33 ]
+    branches: [ main ]
 
 jobs:
   build:
