@@ -11,6 +11,17 @@ $bytes = [Convert]::FromBase64String($logoBase64)
 $sourceStream = New-Object IO.MemoryStream(,$bytes)
 $source = [System.Drawing.Bitmap]::FromStream($sourceStream)
 
+function Write-U16LE([IO.BinaryWriter]$bw,[int]$v) {
+  $bw.Write([byte]($v -band 0xFF))
+  $bw.Write([byte](($v -shr 8) -band 0xFF))
+}
+function Write-U32LE([IO.BinaryWriter]$bw,[long]$v) {
+  $bw.Write([byte]($v -band 0xFF))
+  $bw.Write([byte](($v -shr 8) -band 0xFF))
+  $bw.Write([byte](($v -shr 16) -band 0xFF))
+  $bw.Write([byte](($v -shr 24) -band 0xFF))
+}
+
 function New-KB911Ico {
   param(
     [System.Drawing.Bitmap]$Source,
@@ -58,9 +69,10 @@ function New-KB911Ico {
 
   $fs = [IO.File]::Open($Path,[IO.FileMode]::Create,[IO.FileAccess]::Write,[IO.FileShare]::Read)
   $bw = New-Object IO.BinaryWriter($fs)
-  $bw.Write([UInt16]0) # reserved
-  $bw.Write([UInt16]1) # icon
-  $bw.Write([UInt16]$sizes.Count)
+
+  Write-U16LE $bw 0
+  Write-U16LE $bw 1
+  Write-U16LE $bw $sizes.Count
 
   $offset = 6 + (16 * $sizes.Count)
   for ($i=0; $i -lt $sizes.Count; $i++) {
@@ -69,16 +81,16 @@ function New-KB911Ico {
     $data = $frames[$i]
     $bw.Write([byte]$dim)
     $bw.Write([byte]$dim)
-    $bw.Write([byte]0) # palette
-    $bw.Write([byte]0) # reserved
-    $bw.Write([UInt16]1) # planes
-    $bw.Write([UInt16]32) # bpp
-    $bw.Write([UInt32]$data.Length)
-    $bw.Write([UInt32]$offset)
+    $bw.Write([byte]0)
+    $bw.Write([byte]0)
+    Write-U16LE $bw 1
+    Write-U16LE $bw 32
+    Write-U32LE $bw $data.Length
+    Write-U32LE $bw $offset
     $offset += $data.Length
   }
 
-  foreach ($data in $frames) { $bw.Write($data) }
+  foreach ($data in $frames) { $bw.Write([byte[]]$data) }
   $bw.Flush(); $bw.Dispose(); $fs.Dispose()
 }
 
