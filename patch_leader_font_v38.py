@@ -62,3 +62,5 @@ print('v38: leader gets its own font selector; Bahnschrift default and embedded 
 
 # v39 adds per-image calibration, measurement grid and automatic dimensions.
 exec(Path('patch_measurement_grid_v39.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+# Keep the visible grid and snapping origin mathematically tied to reference points.
+exec(Path('patch_measurement_origin_v39.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
