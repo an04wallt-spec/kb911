@@ -1,0 +1,17 @@
+KB911 stable checkpoint
+Version: v38
+Status: user runtime-confirmed stable
+Date: 2026-09-14
+Stable source commit: 2b61b9bbefadbcff9002d99cd16e596846656c11
+
+Validated cumulative functionality includes:
+- autosave/recovery
+- universal undo/redo and persistent creation tools
+- dimension input preview and zero projections
+- active-tool visual outline
+- collapsible frame/logo settings
+- embedded OpenGOST with Bahnschrift as default
+- proportional logo fitting inside adjustable frame
+- independent font selector for leaders/callouts
+
+This checkpoint changes no application code; it marks the approved v38 state on main.
