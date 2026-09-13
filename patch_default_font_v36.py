@@ -46,3 +46,6 @@ for token in [
 
 p.write_text(s, encoding='utf-8', newline='')
 print('v36: Bahnschrift restored as the default; embedded Gost remains optional')
+
+# v37 changes only frame-logo fitting: preserve the image aspect ratio inside the adjustable box.
+exec(Path('patch_logo_fit_v37.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
