@@ -3,7 +3,7 @@ name: Build KB911 Windows
 on:
   workflow_dispatch:
   push:
-    branches: [ main, embedded-gost-v35 ]
+    branches: [ main ]
 
 jobs:
   build:
