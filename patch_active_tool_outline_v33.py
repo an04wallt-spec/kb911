@@ -40,3 +40,6 @@ for token in [
 
 p.write_text(s, encoding='utf-8', newline='')
 print('v33: red outline added only to the four persistent creation tools')
+
+# v34 is deliberately chained after v33 so the stable build order remains intact.
+exec(Path('patch_frame_settings_v34.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
