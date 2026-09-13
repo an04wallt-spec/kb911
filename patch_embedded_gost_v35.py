@@ -83,3 +83,6 @@ for token in [
 
 p.write_text(s, encoding='utf-8', newline='')
 print('v35: embedded OpenGOST, toolbar status font size, and compact frame fields applied')
+
+# v36 only corrects the default font state; all v35 behavior stays intact.
+exec(Path('patch_default_font_v36.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
