@@ -26,7 +26,7 @@ def fetch(url):
 
 
 def git_blob_sha1(data):
-    return hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\\0' + data).hexdigest()
+    return hashlib.sha1(b'blob ' + str(len(data)).encode('ascii') + b'\x00' + data).hexdigest()
 
 font_bytes = fetch(FONT_URL)
 if not font_bytes.startswith(b'wOFF'):
