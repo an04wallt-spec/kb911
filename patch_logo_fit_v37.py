@@ -32,3 +32,6 @@ if s.count("preserveAspectRatio:'none'") < 1:
 
 p.write_text(s, encoding='utf-8', newline='')
 print('v37: frame logo now fits proportionally inside its adjustable box without stretching')
+
+# v38 gives leaders/callouts their own font selector without changing other leader mechanics.
+exec(Path('patch_leader_font_v38.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
