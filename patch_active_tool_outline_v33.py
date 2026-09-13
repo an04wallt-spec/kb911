@@ -43,3 +43,5 @@ print('v33: red outline added only to the four persistent creation tools')
 
 # v34 is deliberately chained after v33 so the stable build order remains intact.
 exec(Path('patch_frame_settings_v34.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+# v35 is a visual/font-only layer on top of the user-tested v34 behavior.
+exec(Path('patch_embedded_gost_v35.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
