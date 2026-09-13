@@ -3,7 +3,7 @@ name: Build KB911 Windows
 on:
   workflow_dispatch:
   push:
-    branches: [ main, logo-fit-v37 ]
+    branches: [ main ]
 
 jobs:
   build:
