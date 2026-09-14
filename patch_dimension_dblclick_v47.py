@@ -7,6 +7,28 @@ if marker in s:
     print('v47 already applied')
     raise SystemExit(0)
 
+# v42 already gives direct dimension handles priority over the sticky Dimension
+# creation tool. Extend that exact interaction point only for the new invisible
+# witness-line hit zone, so a click there selects the existing dimension instead
+# of starting/moving anything. This keeps single-click/drag behavior unchanged
+# everywhere else.
+v42=s.find('// KB911_V42_MAGNET_AND_ACTIVE_CENTER_HANDLE')
+if v42<0:
+    raise SystemExit('v47: v42 interaction marker missing')
+toolpos=s.find(" if(tool==='dimension'){",v42)
+if toolpos<0:
+    raise SystemExit('v47: v42 dimension-tool branch missing')
+priority=r''' const editHitV47=e.target.closest?.('.kb-dim-edit-hit-v47');
+ if(editHitV47){
+  const ownerV47=findOwner(editHitV47.dataset.owner,'dimension')||groupType(editHitV47);
+  if(ownerV47?.dataset?.type==='dimension'){
+   selected=ownerV47;lastEditable=ownerV47;drawSelection();
+   e.preventDefault();e.stopImmediatePropagation();return;
+  }
+ }
+'''
+s=s[:toolpos]+priority+s[toolpos:]
+
 anchor='\nsetPage();\ninitKB911Project();\nkbHistoryStart();'
 if s.count(anchor)!=1:
     raise SystemExit('v47: startup anchor missing')
@@ -38,9 +60,9 @@ function kbOpenDimensionEditorV47(g){
  setStatus('Настройки размера');
 }
 
-// Anchored witness/extension lines were intentionally non-interactive. Add a
-// generous transparent hit zone so even a tiny 20–50 mm dimension is easy to
-// edit without changing its visible geometry.
+// Witness/extension lines were intentionally non-interactive. Add only an
+// invisible 8 px non-scaling hit target; the visible line and its geometry are
+// left untouched. data-owner lets the target resolve back to the dimension.
 const kbRenderAnchoredDimBeforeV47=kbRenderAnchoredDimV40;
 kbRenderAnchoredDimV40=function(g){
  kbRenderAnchoredDimBeforeV47(g);
@@ -49,7 +71,8 @@ kbRenderAnchoredDimV40=function(g){
   const hit=el('line',{
    x1:line.getAttribute('x1'),y1:line.getAttribute('y1'),
    x2:line.getAttribute('x2'),y2:line.getAttribute('y2'),
-   stroke:'transparent','stroke-width':7,'pointer-events':'stroke',
+   stroke:'transparent','stroke-width':8,'vector-effect':'non-scaling-stroke',
+   'pointer-events':'stroke','data-owner':g.dataset.id,
    class:'kb-dim-edit-hit-v47'
   });
   g.appendChild(hit);
@@ -65,8 +88,8 @@ paper.addEventListener('dblclick',e=>{
 '''
 
 s=s.replace(anchor,code+anchor,1)
-for token in [marker,'kbDimensionOwnerV47','kbOpenDimensionEditorV47','kb-dim-edit-hit-v47',"paper.addEventListener('dblclick'","setTool('dimension-edit',true);syncDimProps();openDimPopup()"]:
+for token in [marker,'editHitV47','kbDimensionOwnerV47','kbOpenDimensionEditorV47','kb-dim-edit-hit-v47',"'data-owner':g.dataset.id","vector-effect':'non-scaling-stroke'", "paper.addEventListener('dblclick'","setTool('dimension-edit',true);syncDimProps();openDimPopup()"]:
     if token not in s: raise SystemExit('v47 guard failed: '+token)
 
 p.write_text(s,encoding='utf-8',newline='')
-print('v47: double-click anywhere on a dimension opens full settings')
+print('v47: double-click anywhere on a dimension opens full settings without changing existing drag behavior')
