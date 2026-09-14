@@ -51,3 +51,4 @@ exec(Path('patch_pdf_stroke_calibration_v46b.py').read_text(encoding='utf-8'), {
 exec(Path('patch_dimension_dblclick_v47.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 exec(Path('patch_dimension_axis_resize_v48.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 exec(Path('patch_dimension_handle_dblclick_v49.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+exec(Path('patch_dimension_session_defaults_v50.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
