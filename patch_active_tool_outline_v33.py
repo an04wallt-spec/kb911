@@ -50,3 +50,5 @@ exec(Path('patch_leader_defaults_v44.py').read_text(encoding='utf-8'), {'__name_
 exec(Path('patch_native_text_paste_v44.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 # v45 makes printing use named ISO paper sizes and shares the remembered picker folder.
 exec(Path('patch_print_path_v45.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+# v46 keeps technical linework lossless inside PDF instead of JPEG-compressed tiles.
+exec(Path('patch_pdf_line_quality_v46.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
