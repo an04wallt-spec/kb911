@@ -44,3 +44,5 @@ exec(Path('patch_dimension_recovery_v41.py').read_text(encoding='utf-8'), {'__na
 exec(Path('patch_dimension_quick_entry_v41.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 # v42 restores visible magnetic capture and gives the center handle priority over sticky creation mode.
 exec(Path('patch_dimension_interaction_v42.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+# v43 lets the center handle open full settings on double-click and turns prefix/suffix spaces into text offsets.
+exec(Path('patch_dimension_text_offset_v43.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
