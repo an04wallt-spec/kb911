@@ -37,3 +37,4 @@ print('v37: frame logo now fits proportionally inside its adjustable box without
 exec(Path('patch_leader_font_v38.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 # v40 changes only newly-created dimensions: fixed reference points, movable dimension line and magnetic endpoint snapping.
 exec(Path('patch_dimension_anchor_v40.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+exec(Path('patch_dimension_anchor_v40_fix.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
