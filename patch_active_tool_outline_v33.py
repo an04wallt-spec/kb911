@@ -53,3 +53,4 @@ exec(Path('patch_dimension_axis_resize_v48.py').read_text(encoding='utf-8'), {'_
 exec(Path('patch_dimension_handle_dblclick_v49.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 exec(Path('patch_dimension_session_defaults_v50.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 exec(Path('patch_dimension_handle_owner_v51.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+exec(Path('patch_dimension_drag_stream_v52.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
