@@ -48,3 +48,5 @@ exec(Path('patch_embedded_gost_v35.py').read_text(encoding='utf-8'), {'__name__'
 # v44 keeps leader defaults independent from dimensions and restores OS text paste.
 exec(Path('patch_leader_defaults_v44.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 exec(Path('patch_native_text_paste_v44.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+# v45 makes printing use named ISO paper sizes and shares the remembered picker folder.
+exec(Path('patch_print_path_v45.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
