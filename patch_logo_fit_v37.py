@@ -42,3 +42,5 @@ exec(Path('patch_dimension_anchor_v40_fix.py').read_text(encoding='utf-8'), {'__
 exec(Path('patch_dimension_recovery_v41.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 # v41 quick entry keeps full properties closed after creation and uses a compact ellipsis input instead.
 exec(Path('patch_dimension_quick_entry_v41.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+# v42 restores visible magnetic capture and gives the center handle priority over sticky creation mode.
+exec(Path('patch_dimension_interaction_v42.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
