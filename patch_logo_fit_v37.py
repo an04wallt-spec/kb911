@@ -38,5 +38,7 @@ exec(Path('patch_leader_font_v38.py').read_text(encoding='utf-8'), {'__name__':'
 # v40 changes only newly-created dimensions: fixed reference points, movable dimension line and magnetic endpoint snapping.
 exec(Path('patch_dimension_anchor_v40.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
 exec(Path('patch_dimension_anchor_v40_fix.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
-# v41 removes the legacy tail gesture from the center control, restores the new-dimension popup and adds recovery deletion UI.
+# v41 removes the legacy tail gesture from the center control and adds recovery deletion UI.
 exec(Path('patch_dimension_recovery_v41.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
+# v41 quick entry keeps full properties closed after creation and uses a compact ellipsis input instead.
+exec(Path('patch_dimension_quick_entry_v41.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
