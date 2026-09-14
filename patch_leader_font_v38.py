@@ -59,3 +59,6 @@ for token in [
 
 p.write_text(s, encoding='utf-8', newline='')
 print('v38: leader gets its own font selector; Bahnschrift default and embedded Gost stay available')
+
+# v39 adds calibrated measurement, grid and automatic dimension values.
+exec(Path('patch_calibration_grid_v39.py').read_text(encoding='utf-8'), {'__name__':'__main__'})
